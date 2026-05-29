@@ -1,0 +1,58 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- virtual envs ---
+.venv/
+venv/
+env/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+notebooks/*-checkpoint.ipynb
+
+# --- processed/intermediate data (regenerable from raw + pipeline) ---
+data/processed/
+data/interim/
+data/external/*.cache
+
+# --- model artefacts (regenerable) ---
+models/*.pkl
+models/*.joblib
+models/*.txt
+
+# --- figures (regenerable from notebooks) ---
+figures/*.png
+figures/*.pdf
+figures/*.svg
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.code-workspace
+
+# --- secrets ---
+.env
+.env.*
+!.env.example
+*.key
+
+# --- archive we don't need (raw data is already extracted under data/) ---
+data_AGD_2026.zip
+
+# --- local Claude Code settings ---
+.claude/
+
+# --- provided reference material (not our deliverable; kept on disk, not tracked) ---
+Challenge_Description.pptx
+SPE_Africa_Geothermal_Datathon_2026_FAQ.pdf
+SPE_Africa_Geothermal_Datathon_Submission_Guidelines.pdf

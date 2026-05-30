@@ -1,82 +1,97 @@
-# CHECKPOINT — 2026-05-28 (Day 0 complete)
+# CHECKPOINT — 2026-05-30 (Day 1 complete)
 
 > Resume by re-reading this file plus `PLAN.md`. Skip `CONTEXT.md` only
-> if you already remember the raw-data facts.
+> if you already remember the raw-data facts. The data foundation is now
+> code, not notes — trust `src/` + the tests over older prose.
 
 ---
 
 ## Where we are
 
-**Day 0 complete.** Day 1 (data foundation + petrophysics MVP) **not yet
-started.** Internal deadline still **Tue 2026-06-02 17:00 EAT**; hard
-deadline **Thu 2026-06-04 23:59 EAT**. We have 5 working days left to
-the internal deadline.
+**Day 0 + Day 1 complete.** Repo is now its own git repo (`git init` done,
+local only, no remote). Internal deadline **Tue 2026-06-02 17:00 EAT**;
+hard deadline **Thu 2026-06-04 23:59 EAT**. Day-1 gate passed: we have a
+defensible BLT-01 Rotliegend table.
 
-## What got done today (Day 0)
+## Environment
 
-Repo scaffold and skeletons written and verified:
+- `.venv/` (gitignored) holds the pinned `requirements.txt` deps for
+  Python 3.12. Activate or call `.venv/Scripts/python.exe` directly.
+- Run tests: `.venv/Scripts/python.exe -m pytest` (26 passing).
+- Rebuild processed data: `.venv/Scripts/python.exe -m src.build_processed`.
+- Rebuild EDA notebook: `python scripts/make_eda_notebook.py` then
+  `jupyter nbconvert --execute --inplace notebooks/01_eda.ipynb`.
+- Commits are authored **solely by the user** — no Claude co-author trailer.
 
-- `PLAN.md` — senior-voice execution plan (Day 0–7, 7 sections, risk register)
-- `README.md` — placeholder (team name + SPE numbers to be filled later)
-- `requirements.txt` — pinned for Python 3.12 on Windows 11
-- `.gitignore` — Python, Jupyter, processed-data, venv, IDE, secrets
-- `deliverables/deck_outline.md` — 12-slide board-memo skeleton
-- `deliverables/report_outline.md` — 8-section technical report outline
-- `src/__init__.py`, `src/paths.py`, `src/constants.py` — project paths and
-  the `WELLS` dataclass dict (all 4 wells' RD-New coords, ThermoGIS
-  P10/P50/P90, petrophysical cutoffs, doublet design defaults)
-- Directories created: `data/processed/`, `notebooks/`, `figures/`,
-  `tests/`, `deliverables/`
+## What got done (Day 1)
 
-Sanity check that passed: `python -c "from src import paths, constants"`
-imports cleanly. BLT-01 gross k·h computes to 10.66 Dm vs ThermoGIS
-effective 9.3 Dm — the ~13 % gap is the net-to-gross effect, which the
-Day 1 Vsh/φ cutoffs will reconcile. Constants are correctly pasted.
+Modules (all tested):
+- `src/units.py` — idempotent ft→m (`ensure_metres`); guards double-conversion.
+- `src/mdtvd.py` — minimum-curvature MD→TVD; matches the workbook TVD to
+  <0.01 m on all 4 wells; interpolant with terminal-inclination extrapolation.
+- `src/wells_io.py` — LAS loader: null-mask + physical-range gating (kills
+  JUT-01 spike garbage), ft→m, ascending sort (EVD/PKP logged bottom-up),
+  per-sample TVD, `coverage_table`.
+- `src/lithostrat.py` — TVD-referenced picks, fault flagging, `rotliegend_pick`
+  (Slochteren; deepest pick handles JUT-01's fault-repeat).
+- `src/petrophysics.py` — Larionov-older Vsh, density φ, `rotliegend_summary`.
+- `src/targets.py` — recovers `target_lithologies.csv` depths (see below).
+- `src/build_processed.py` — writes the processed artefacts.
+- `scripts/make_eda_notebook.py` — regenerates `notebooks/01_eda.ipynb`.
 
-## Open decisions still to make (asked before interrupt)
+Processed outputs (in `data/processed/`, gitignored, regenerable):
+- `well_logs.parquet` (99,379 rows, tidy, TVD-referenced, +vsh/phi_d)
+- `target_lithologies_tvd.csv` (3,455 rows, **flag cleared**, depth_tvd_m filled)
+- `rotliegend_summary.csv`
+- `figures/*.png` (coverage, raw curves ×4, md_vs_tvd, petro_BLT-01)
 
-1. **Git setup** — the hackathon folder currently lives inside the
-   Desktop-wide NAPE git repo, which is the wrong root for submission.
-   Recommended: `git init` here as its own repo on resume.
-2. **Team name + SPE membership numbers** — the user wants to add these
-   later. Touches: `README.md`, deck slide 1, report title page,
-   submission filenames `Team_<TeamName>_(Code|PPT|Vid)_V1`.
+## Key data facts discovered (carry forward)
 
-## What Day 1 will do (when we resume)
+1. **Reservoir = "Slochteren Formation"** in the lithostrat sheets.
+2. **`target_lithologies.csv` structure was disguised:** `formation_top_tvd` /
+   `formation_base_tvd` are along-hole **MD** (in **feet** for JUT-01),
+   mislabelled as TVD; `depth_tvd_m` shipped empty. Each row is an exact LAS
+   sample, matched by GR — **BLT-01/JUT-01 top→base, EVD-01/PKP-01 reversed**.
+3. **JUT-01 is the problem child:** target GR traces uniquely to ~506 m
+   (1659.5 *ft* → metres) — a feet/metre bug in the source file. True
+   Slochteren is at ~3161 m TVD (3240–3378 m MD) below the Zechstein; a
+   reverse fault at 2555 m repeats section. **Exclude JUT-01 target rows from
+   reservoir aggregation; flagged for manual review.**
+4. **Net-reservoir summary (TVD):** BLT-01 NTG 0.93 / φ_net 15% (anchor) ·
+   EVD-01 NTG 0.55 / φ 11% · JUT-01 NTG 0.32 (deep pick) · PKP-01 NTG 0.10
+   (tight — matches ThermoGIS k_P50 = 1 mD).
+5. Formation-top cross-check (target vs lithostrat) = **0.0 m** for
+   BLT/EVD/PKP; JUT flagged.
+6. PKP-01 is the most deviated well (~37°), not BLT-01 as CONTEXT.md guessed.
+7. NPHI is a fraction (v/v) on BLT-01 and PKP-01; EVD-01/JUT-01 have no NPHI.
 
-**Workstreams:** WS1 (data foundation) + start of WS2 (petrophysics).
+## Open decisions still pending
 
-**Concrete tasks, in order:**
+- **Team name + SPE membership numbers** — still to be added by the user.
+  Touches README, deck slide 1, report title page, submission filenames
+  `Team_<TeamName>_(Code|PPT|Vid)_V1`.
 
-1. Notebook `notebooks/01_eda.ipynb` — load all 4 LAS with `lasio`,
-   replace `-999.25` with NaN, plot raw curves per well, log a
-   curve-coverage table.
-2. Notebook / module `src/units.py` — JUT-01 ft→m conversion with a
-   unit test that fails on double-application.
-3. Module `src/mdtvd.py` — minimum-curvature MD→TVD from
-   `Well Path Data.xlsx`. Piecewise-linear fallback for EVD-01
-   (only 22 stations) with a warning logged.
-4. Apply MD→TVD to LAS depths and to the flagged `depth_tvd_m` column
-   in `target_lithologies.csv`; clear the flag.
-5. QC plot per well: MD vs TVD overlaid with lithostrat picks.
-6. Cross-check formation tops vs lithostrat picks — > 10 m discrepancy
-   triggers manual review.
-7. First petrophysics pass on BLT-01 only: Larionov-older Vshale,
-   density-φ (ρ_ma 2.65), pick the Rotliegend interval.
-8. Write `data/processed/well_logs.parquet` (one row per depth sample,
-   tvd-referenced, with sparse-curve flag).
+## Day 2 plan (when we resume) — Reservoir deliverability + Challenge 2 start
 
-**Day 1 gate (end-of-day question):** "If we had to submit tonight,
-would we have a defensible Rotliegend table for BLT-01?" If yes → Day 2.
+1. **Deliverability model** — from Rotliegend k·h, φ, T per well + ThermoGIS
+   P10/P50/P90, estimate doublet flow rate and **MWth** at the USP. Use
+   `src/constants.py` doublet defaults. Reconcile gross k·h vs ThermoGIS
+   transmissivity (BLT gross 10.66 Dm vs effective 9.3 Dm — NTG now 0.93
+   explains most of the gap).
+2. **Monte Carlo MWth** — propagate P10/P50/P90 thickness/φ/k to a MWth
+   distribution; write `data/processed/mc_mwth.parquet`.
+3. **Confirm `distance_to_usp_km`** semantics during this step.
+4. **Begin Challenge 2** — doublet layout, flow rate, surface heat
+   exchangers, heat pump (COP 4.2) for heating + cooling, optional ATES.
+5. **Bonus AI track** — scope ML missing-curve prediction (train on BLT-01
+   full suite → predict NPHI/DTC/RHOB at EVD/JUT/PKP). The loader + parquet
+   are ready feedstock.
 
-## Disk-space watch
-
-`C:\` had 4.18 GB free at last check (was 0 earlier today). Keep ≥ 2 GB
-free through Tue 2 Jun. `data/processed/` artefacts should stay
-under 500 MB total.
+**Day 2 gate:** "Do we have a P50 MWth number for a BLT-01-anchored doublet
+that clears the 10 MWth heating demand?"
 
 ## Exact prompt to restart with
 
-> "Pick up from `CHECKPOINT.md`. Decisions: git init here as its own
-> repo (yes / no), and start Day 1 now (yes / no). Team name and SPE
-> numbers I'll add later."
+> "Pick up from `CHECKPOINT.md`. Start Day 2: reservoir deliverability /
+> MWth from the Rotliegend summary + ThermoGIS P10/P50/P90, then begin
+> Challenge 2 doublet design. Team name + SPE numbers I'll add later."

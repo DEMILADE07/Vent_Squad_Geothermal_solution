@@ -70,9 +70,19 @@ WATER_VISCOSITY_PA_S = 3.5e-4    # ~77 degC, fresh-ish brine
 
 DOUBLET_SPACING_M = 1300.0
 WELLBORE_RADIUS_M = 0.108         # 8.5" hole approx
-DRAWDOWN_PA = 5.0e6               # 50 bar nominal
+DRAWDOWN_PA = 5.0e6               # 50 bar nominal (aggressive sensitivity case)
+
+# Calibrated against ThermoGIS: their published Flow Rate P50 is reproduced by
+# the Darcy doublet model (this file's mu, spacing, rw) at ~16.5 bar drawdown,
+# consistent across BLT-01 and JUT-01. We adopt this as the reconciled baseline.
+DRAWDOWN_THERMOGIS_PA = 1.65e6    # ~16.5 bar — ThermoGIS-equivalent doublet
+
+# ThermoGIS Power = rho*cp*Q*dT back-solves to an injection temperature of ~35 C
+# (dT 42 C at BLT-01 T=77; ~37 C at the T=72 wells). This is the ThermoGIS
+# standard reinjection temperature; we adopt it for the headline thermal calc.
+INJECTION_TEMP_C = 35.0
 DELTA_T_DEFAULTS_C = (30.0, 35.0, 40.0)
-RETURN_TEMP_DEFAULT_C = 42.0      # corresponds to DT = 35
+RETURN_TEMP_DEFAULT_C = 42.0      # legacy DT=35 sensitivity anchor
 
 
 # ---------------------------------------------------------------------------

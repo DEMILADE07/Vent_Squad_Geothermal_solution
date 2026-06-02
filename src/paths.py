@@ -24,3 +24,6 @@ LCOE_HYBRID = DATA_PROCESSED / "LCOE_hybrid.xlsx"
 WELL_LOGS_PARQUET = DATA_PROCESSED / "well_logs.parquet"
 ROTLIEGEND_SUMMARY_CSV = DATA_PROCESSED / "rotliegend_summary.csv"
 MC_MWTH_PARQUET = DATA_PROCESSED / "mc_mwth.parquet"
+
+ML_LOO_CV_CSV = DATA_PROCESSED / "ml_loo_cv.csv"
+ML_PREDICTIONS_PARQUET = DATA_PROCESSED / "ml_log_predictions.parquet"

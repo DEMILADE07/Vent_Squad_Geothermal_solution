@@ -2,7 +2,7 @@
 
 **SPE Africa Geothermal Datathon 2026**
 **Author / team lead:** Demilade
-**Last updated:** 2026-05-31 (end of Day 3)
+**Last updated:** 2026-06-02 (submission day)
 
 ---
 
@@ -482,20 +482,20 @@ fine-tuning the cooling plant.
 | D2 | **Slide deck** (10–15 slides; outline already in `deliverables/deck_outline.md`) | outline only |
 | D4 | **Technical report** (outline in `deliverables/report_outline.md`) | outline only |
 | D3 | **3–5 min narrated video** | not started |
-| — | **Team name slot is "Vent Squad"; still need each member's full name + SPE membership number** for the title slide | **needed from you all** |
+| — | Team is **Vent Squad** — Fikayo, Ashinze, Ayomide, Sodiq and me. Still need each member's **SPE membership number** for the title slide | **SPE numbers needed** |
 | — | (Stretch) **Thermal-breakthrough check** — analytic estimate of how long until the injected cold water reaches the producer | optional |
 
 ---
 
 # Part F — Your tasks
 
-I've matched tasks to backgrounds. **Everyone's baseline job is to QA (quality-
-check) the part that matches their expertise** — read the code/notebook, re-run
-it, and challenge my assumptions. Finding a wrong assumption now is worth more
-than any new feature. Put findings as GitHub issues or comments so we have a
-trail. Replace "[name]" with yourself.
+I've matched tasks to backgrounds so each of us owns the part that fits our
+expertise. We're a few hours from the deadline, so move fast and keep commits
+small and clearly described. If an assumption looks off, flag it early — getting
+the inputs right is worth more than any late feature. Co-ordinate over the repo:
+open a GitHub issue or a pull request for anything you add or change.
 
-### F.1 — ML engineer, insurance background → **own the ML workflow** `[name]`
+### F.1 — Fikayo (ML engineer, insurance background) → **own the ML workflow**
 
 You're the lead on the bonus AI track (WS5.1), the part that needs real ML craft.
 1. **Build the missing-log model.** Train a **LightGBM** regressor on BLT-01
@@ -514,61 +514,64 @@ You're the lead on the bonus AI track (WS5.1), the part that needs real ML craft
 5. Deliverable: `notebooks/05_ml_logs.ipynb` with the LOO-CV table, plus a short
    write-up. (I'll wire your model into the pipeline.)
 
-### F.2 — ML engineer, chemical engineering background → **simulation + LCOE deep-review** `[name]`
+### F.2 — Ashinze (ML engineer, chemical engineering background) → **simulation + economics**
 
-Your process-engineering background is perfect for the physics and economics.
-1. **QA the deliverability physics** (`src/deliverability.py`): check my Darcy-law
-   flow model, the fluid properties (viscosity, density, heat capacity at 77 °C),
-   and the thermal-power equation. Are my brine properties right? Is 16.5 bar a
-   defensible drawdown?
-2. **Deep-review the LCOE model** (`src/lcoe.py`): I rebuilt the TNO financial
-   model from scratch — sanity-check the cash-flow logic (depreciation, loan
-   amortisation, tax, the 15% discount). The validation gate (reproduces 5.769
-   €/GJ) is your friend here.
-3. **Pressure-test the surface-design assumptions** (`src/surface.py`,
-   `src/lcoe.py`): heat-pump COP (4.2), ATES cost (€0.7M/pair), cooling COP (10),
-   absorption-chiller behaviour at 77 °C. Tell me which are too optimistic.
-4. **(Stretch) Thermal-breakthrough check:** an analytic estimate
-   (Gringarten/Lauwerier) of how many years until the injected cold reaches the
-   producer at 1.3 km spacing. This strengthens the risk section a lot.
+Your process-engineering background is perfect for the physics and economics —
+you own this layer.
+1. **Own the deliverability physics** (`src/deliverability.py`): the Darcy-law
+   flow model, the brine properties at 77 °C (viscosity, density, heat capacity)
+   and the thermal-power equation. Lock the drawdown assumption (currently
+   16.5 bar) to a value we can defend from NL precedent.
+2. **Own the LCOE financial model** (`src/lcoe.py`): the cash-flow logic
+   (depreciation, loan amortisation, tax, the 15 % discount). It must keep
+   reproducing the TNO workbook's 5.769 €/GJ — that gate is what proves it's right.
+3. **Tighten the surface-design assumptions** (`src/surface.py`, `src/lcoe.py`):
+   heat-pump COP (4.2), ATES cost (€0.7M/pair), cooling COP (10), and the
+   absorption-chiller behaviour at 77 °C. Pull any that look optimistic back to a
+   sourced figure.
+4. **Build the thermal-breakthrough estimate:** an analytic (Gringarten/Lauwerier)
+   estimate of how many years until the injected cold reaches the producer at
+   1.3 km spacing. A real addition to the risk section — own it end to end.
 
-### F.3 — Data scientist / Geophysics (early-stage), with me → **geoscience QA lead** `[name]`
+### F.3 — Ayomide (data scientist / geophysics) → **geoscience lead, with me**
 
 You and I share the geoscience background, so we co-own the credibility of
-Challenge 1. We'll pair on this.
-1. **QA the petrophysics** (`src/petrophysics.py`): is the Larionov-older Vshale
-   the right choice? Are the porosity calc (density, 2.65 g/cc matrix) and the
-   net cut-offs (Vsh ≤ 0.4, φ ≥ 0.08) defensible for the Rotliegend?
-2. **QA the layer picks** (`src/lithostrat.py`): did we pick the
-   Rotliegend/Slochteren interval correctly in each well, especially the messy
-   JUT-01 (fault repeat + the feet/metre bug)?
-3. **QA the MD→TVD conversion** (`src/mdtvd.py`) and the `target_lithologies.csv`
+Challenge 1 — let's pair on it.
+1. **Own the petrophysics call** (`src/petrophysics.py`): confirm Larionov-older
+   Vshale is the right pick, and that the porosity calc (density, 2.65 g/cc
+   matrix) and the net cut-offs (Vsh ≤ 0.4, φ ≥ 0.08) are the defensible choices
+   for the Rotliegend.
+2. **Own the layer picks** (`src/lithostrat.py`): confirm the
+   Rotliegend/Slochteren interval is picked correctly in each well, especially the
+   messy JUT-01 (fault repeat + the feet/metre bug).
+3. **Own the depth referencing** (`src/mdtvd.py`) and the `target_lithologies.csv`
    fix — these underpin every depth in the project.
-4. **Cross-check against literature:** do our per-well numbers look like real
-   Dutch Rotliegend wells? Pull a couple of public ThermoGIS/DINOloket examples.
-5. Work with me on the **geoscience narrative** for the report and deck — this is
-   great practice and it's 60% of the marks.
+4. **Anchor us to literature:** pull a couple of public ThermoGIS/DINOloket
+   Rotliegend wells and confirm our per-well numbers sit in the real-world range.
+5. Build the **geoscience narrative** for the report and deck with me — it's 60 %
+   of the marks, so this is where we win or lose.
 
-### F.4 — Petroleum & gas engineering student → **support: benchmarks + economic inputs** `[name]`
+### F.4 — Sodiq (petroleum & gas engineering) → **benchmarks + economic inputs**
 
-A focused support role — pick these up when you can; they make the others'
-work more defensible.
-1. **Find real-world benchmarks** for our key assumptions and tell me if we're in
-   range: Dutch Rotliegend doublet **flow rates** (typically 100–300 m³/h),
-   **drilling cost per metre**, **ATES system costs**, heat-pump COPs. Cite
-   sources — the brief *requires* us to document external data.
-2. **QA the economic inputs** in `LCOE_hybrid.xlsx` against industry figures:
-   well cost, surface-plant cost, electricity price, load-hours.
-3. **Sanity-check the doublet design** (1.3 km spacing, well depth ~2 km, 8.5"
-   hole) against standard practice.
-4. Coordinate with F.2 (chemical-eng) — you're both on simulation + LCOE.
+You own the external-data backbone — the brief explicitly *requires* us to
+document and cite the outside numbers we lean on, so this is a scored deliverable,
+not a side task.
+1. **Own the benchmark + citation list** for our key assumptions: Dutch Rotliegend
+   doublet **flow rates** (typically 100–300 m³/h), **drilling cost per metre**,
+   **ATES system costs**, heat-pump COPs. Every figure gets a cited source — this
+   list goes straight into the report's external-data appendix.
+2. **Own the economic inputs** in `LCOE_hybrid.xlsx`: confirm well cost,
+   surface-plant cost, electricity price and load-hours against industry figures.
+3. **Confirm the doublet design** (1.3 km spacing, ~2 km depth, 8.5" hole) lines
+   up with standard NL practice.
+4. Work with Ashinze (F.2) — you're both on the simulation + economics side.
 
 ### F.5 — Me (Demilade), team lead → coordination + assembly
 
-I'll keep building (WS5 ML + pipeline next), pair with F.3 on geoscience, then
-assemble the deck, report and video, and integrate everyone's QA findings. I'll
-also collect everyone's **full name + SPE membership number** for the title slide
-— please send these to me ASAP, they block the deck.
+I'll keep building (the WS5 ML model + the end-to-end pipeline next), pair with
+Ayomide on geoscience, then assemble the deck, report and video and integrate
+everyone's work. I still need everyone's **SPE membership number** for the title
+slide — please send them to me ASAP, they're the last thing blocking the deck.
 
 ### F.6 — How to give feedback / contribute
 

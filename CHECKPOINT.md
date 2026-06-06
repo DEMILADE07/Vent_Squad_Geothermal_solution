@@ -18,12 +18,20 @@
    `heat_economics` accept a per-year MWth profile and a `lifetime_yr` override; a
    flat profile still reproduces 5.769. A 30-yr economic life (loan still 15 yr)
    lowers heat LCOE 11.7 → 10.6 €/GJ.
-4. Docs updated (README, technical report §3.4/§5/§6). Tests: +6
-   (`test_reservoir_thermal.py`, two in `test_lcoe.py`, two in `test_deliverability.py`).
+4. **Probabilistic LCOE** (`src/lcoe_montecarlo.py`, new). Propagates the bounded
+   2-doublet resource MC *and* cost/market uncertainty (drilling, load-hours,
+   electricity, ATES — triangular, anchored to the tornado bounds) through the
+   financed model to an LCOE distribution: heat **P10/P50/P90 = 6.3 / 11.8 / 56.7
+   €/GJ**, P(≤15)=0.59. The P50 matches the deterministic point estimate; the heavy
+   upper tail is resource downside (not cost), the quantified case for staged
+   appraisal. Wired into `pipeline.py lcoe` (writes `lcoe_mc_summary.csv`,
+   `lcoe_mc_by_hurdle.csv`, `figures/lcoe_*_distribution.png`).
+5. Docs updated (README, technical report §3.4/§5/§6). Tests: **64 pass** (+12 this
+   branch); TNO `5.769049` gate green throughout.
 
-**Next (planned):** probabilistic LCOE — propagate the bounded resource MC +
-cost uncertainty through the financed model to an LCOE P10/P50/P90 + CDF; then the
-8760-hr dispatch sim and the SDE++ value case.
+**Next (planned):** 8760-hr hourly dispatch sim (derive load-hours / ATES sizing /
+peak electricity instead of assuming them) and the SDE++ subsidy + value case
+(NPV/IRR at a heat tariff, €/tCO₂ abated).
 
 ---
 

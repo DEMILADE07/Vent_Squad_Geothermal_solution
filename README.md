@@ -30,7 +30,10 @@ The work spans:
 - **Economics** — a faithful Python rebuild of the TNO LCOE workbook (gated to
   reproduce the reference to **5.769 €/GJ**), extended to a **time-varying
   (thermal-decline) energy profile** and a **configurable economic life** (the
-  asset outlives the 15-yr loan: a 30-yr life lowers heat LCOE ~9 %).
+  asset outlives the 15-yr loan: a 30-yr life lowers heat LCOE ~9 %), plus a
+  **probabilistic LCOE** (`src/lcoe_montecarlo.py`) that propagates the bounded
+  resource + cost uncertainty to a **P10/P50/P90 distribution and CDF** (heat P50
+  11.8 €/GJ; the heavy upper tail is resource risk, the case for staged appraisal).
 - **Bonus** — runnable AI-assisted pipeline (LAS → Rotliegend summary →
   Monte-Carlo MWth → hybrid LCOE).
 

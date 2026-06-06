@@ -9,7 +9,7 @@ consumes:
     python -m src.pipeline petro      #           -> rotliegend_summary.csv (+ deliverability)
     python -m src.pipeline predict    #           -> mc_mwth.parquet (Monte-Carlo MWth)
     python -m src.pipeline ml         #           -> ml_loo_cv.csv + ml_log_predictions.parquet
-    python -m src.pipeline lcoe       #           -> LCOE_hybrid.xlsx
+    python -m src.pipeline lcoe       #           -> LCOE_hybrid.xlsx + lcoe_mc_summary.csv (P10/P50/P90)
     python -m src.pipeline all        # run every stage in order
 
 Every stage is a plain function returning the paths it wrote, so the steps are
@@ -32,7 +32,10 @@ from src.lithostrat import rotliegend_pick
 from src.montecarlo import simulate_all, summarise
 from src.paths import (
     DATA_PROCESSED,
+    FIGURES,
     LCOE_HYBRID,
+    LCOE_MC_HURDLE_CSV,
+    LCOE_MC_SUMMARY_CSV,
     MC_MWTH_PARQUET,
     ML_LOO_CV_CSV,
     ML_PREDICTIONS_PARQUET,
@@ -143,14 +146,38 @@ def stage_ml() -> dict:
     return {"cv": ML_LOO_CV_CSV, "predictions": ML_PREDICTIONS_PARQUET}
 
 
-def stage_lcoe() -> dict:
-    """Resource + design -> extended hybrid heating+cooling LCOE workbook."""
+def stage_lcoe(draws: int = 10_000) -> dict:
+    """Resource + design -> hybrid LCOE workbook + probabilistic LCOE distribution.
+
+    Two products: the deterministic extended workbook (LCOE_hybrid.xlsx) and a
+    Monte-Carlo LCOE that propagates the bounded resource + cost uncertainty to a
+    P10/P50/P90 band (lcoe_mc_summary.csv) and a hurdle-rate scenario table.
+    """
     _ensure_out()
     from src.build_lcoe_workbook import build  # local import; heavy (openpyxl styling)
+    from src.lcoe_montecarlo import (
+        lcoe_scenarios_by_hurdle,
+        plot_lcoe_distribution,
+        simulate_lcoe,
+        summarise_lcoe,
+    )
 
     path = build()
     console.print(f"[green]wrote[/] {LCOE_HYBRID.name}")
-    return {"lcoe": path}
+
+    mc = simulate_lcoe(n=draws)
+    summary = summarise_lcoe(mc)
+    summary.to_csv(LCOE_MC_SUMMARY_CSV, index=False)
+    hurdle = lcoe_scenarios_by_hurdle(n=max(draws // 2, 2_000))
+    hurdle.to_csv(LCOE_MC_HURDLE_CSV, index=False)
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    for col in ("lcoe_heat", "lcoe_blended"):
+        plot_lcoe_distribution(mc, col, save_path=FIGURES / f"{col}_distribution.png")
+    _df_table(summary, "Probabilistic LCOE — P10/P50/P90 (EUR/GJ)")
+    console.print(f"[green]wrote[/] {LCOE_MC_SUMMARY_CSV.name}, "
+                  f"{LCOE_MC_HURDLE_CSV.name} and lcoe_*_distribution.png")
+    return {"lcoe": path, "lcoe_mc": LCOE_MC_SUMMARY_CSV,
+            "lcoe_hurdle": LCOE_MC_HURDLE_CSV}
 
 
 # ---------------------------------------------------------------------------
@@ -186,10 +213,10 @@ def ml() -> None:
 
 
 @app.command()
-def lcoe() -> None:
-    """Extended hybrid heating+cooling LCOE workbook (LCOE_hybrid.xlsx)."""
+def lcoe(draws: int = typer.Option(10_000, help="Probabilistic-LCOE Monte-Carlo draws")) -> None:
+    """Hybrid LCOE workbook + probabilistic LCOE (P10/P50/P90, CDF, hurdle scenarios)."""
     _rule("lcoe")
-    stage_lcoe()
+    stage_lcoe(draws=draws)
 
 
 @app.command()
@@ -200,7 +227,7 @@ def all(draws: int = typer.Option(10_000, help="Monte-Carlo draws per well")) ->
     stage_petro()
     stage_predict(n=draws)
     stage_ml()
-    stage_lcoe()
+    stage_lcoe(draws=draws)
     console.print("\n[bold green]Pipeline complete.[/] All artefacts in "
                   f"{DATA_PROCESSED}")
 

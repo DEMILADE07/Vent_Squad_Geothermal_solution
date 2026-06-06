@@ -53,7 +53,10 @@ chiller wants 85–95 °C drive heat, above our 77 °C resource.
 The economics are benchmarked and honest. My LCOE engine reproduces the TNO
 reference workbook to **5.769 €/GJ** before I trust any of my own numbers. On that
 footing, the hybrid scheme delivers **heat at 11.7 €/GJ, cooling at 17.5 €/GJ, a
-blended 12.5 €/GJ**, for **≈ €19.9 M** of capital. That heat price is ~2× the Dutch
+blended 12.5 €/GJ**, for **≈ €19.9 M** of capital — and, propagating the full
+resource and cost uncertainty, that heat price carries a **90 % band of ~6–57 €/GJ
+whose heavy upper tail is resource risk, not cost risk** (P50 11.8 €/GJ; §5). That
+heat price is ~2× the Dutch
 heat-only benchmark, and I can attribute the gap precisely: a cooler, less
 productive reservoir needs four wells for 10 MWth where the benchmark needs two for
 13 MWth.
@@ -314,6 +317,29 @@ economic life to a realistic **30 yr (loan unchanged at 15 yr) lowers heat LCOE 
 benchmark-comparable headline and the 30-yr figure as the bankable upside, because
 the thermal-breakthrough check above confirms the resource is good for it.
 
+**Probabilistic LCOE — a band, not a point** (`src/lcoe_montecarlo.py`). A single
+break-even price hides that its dominant input is a coin-flip. I therefore propagate
+the **bounded two-doublet resource Monte-Carlo *and* the cost/market uncertainty**
+(drilling-cost scaling, heat load-hours, electricity price, ATES capex and COP —
+sampled from the same low/base/high ranges the tornado swings, for one consistent
+story) through the financed model, 10,000 joint draws, to an LCOE *distribution*:
+
+| Heat LCOE | P10 (low) | **P50** | P90 (high) |
+|-----------|-----------|---------|------------|
+| €/GJ | 6.3 | **11.8** | 56.7 |
+
+The **P50 of 11.8 matches the deterministic point estimate**, and
+**P(LCOE ≤ 15 €/GJ) = 0.59**. The distribution is strongly right-skewed, and the
+driver of the heavy upper tail is unambiguous: it is the **resource downside** — the
+two-doublet P90 of ~1.7 MWth spreads four fixed well costs over little energy — **not
+cost inflation** (cooling LCOE stays tight at 15–22 €/GJ). That is the quantified
+economic case for **staged appraisal**: drilling one pilot well to confirm
+deliverability *before* committing the full four-well capital is precisely what
+truncates the tail. Reported at three hurdle rates (P50 heat LCOE 11.0 / 11.8 / 12.6
+€/GJ at 10 / 15 / 20 % required return) so the financing choice is explicit rather
+than buried in the discount factor. CDF and histogram:
+`figures/lcoe_heat_distribution.png`.
+
 **Sensitivities (tornado, `figures/lcoe_tornado.png`).** The LCOE is
 **heat-dominated**: the top drivers are resource deliverability (MWth), heat
 load-hours, and drilling cost per metre. The cooling-side knobs (ATES capex,
@@ -419,5 +445,5 @@ transient thermal-breakthrough simulation at the chosen spacing.
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.
 
-*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (58 tests)
+*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (64 tests)
 then `.venv\Scripts\python.exe -m src.pipeline all`.*

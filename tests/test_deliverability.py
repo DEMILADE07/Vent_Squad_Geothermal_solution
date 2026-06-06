@@ -51,6 +51,35 @@ def test_fit_lognormal_recovers_median():
     assert sigma > 0
 
 
+def test_split_lognormal_reproduces_thermogis_band_exactly():
+    """Unlike the single-sigma fit, the split fit must hit BOTH published tails:
+    the sampled P90 and P10 reproduce ThermoGIS's flow band, not just the average
+    spread. BLT-01 flow 17/105/469: the old fit overshot P10 to ~551."""
+    import numpy as np
+    from src.montecarlo import fit_split_lognormal, _sample_split_lognormal
+    mu, s_lo, s_hi = fit_split_lognormal(17.0, 105.0, 469.0)
+    rng = np.random.default_rng(0)
+    draws = _sample_split_lognormal(rng, mu, s_lo, s_hi, 200_000)
+    assert abs(np.percentile(draws, 50) - 105.0) / 105.0 < 0.02
+    assert abs(np.percentile(draws, 10) - 17.0) / 17.0 < 0.05   # P90 low
+    assert abs(np.percentile(draws, 90) - 469.0) / 469.0 < 0.05  # P10 high (was ~551)
+
+
+def test_flow_cap_bounds_the_optimistic_tail_not_the_median():
+    """The pump/sand-control ceiling de-rates only the upper tail: no realisation
+    exceeds the cap, the capped optimistic P10 is well below the uncapped one, and
+    the P50 headline is untouched."""
+    capped = simulate_all(n=20_000, anchor="flow")               # default cap 300
+    uncapped = simulate_all(n=20_000, anchor="flow", q_max_m3h=None)
+    blt_c = capped[capped["well"] == "BLT-01"]
+    blt_u = uncapped[uncapped["well"] == "BLT-01"]
+    assert blt_c["flow_m3h"].max() <= 300.0 + 1e-9
+    s_c = summarise(blt_c, 10.0, n_doublets=1).iloc[0]
+    s_u = summarise(blt_u, 10.0, n_doublets=1).iloc[0]
+    assert s_c["mwth_p10"] < s_u["mwth_p10"] - 3.0          # tail pulled in materially
+    assert abs(s_c["mwth_p50"] - s_u["mwth_p50"]) < 0.1     # median untouched
+
+
 def test_mc_blt_p50_is_about_5MWth_single_doublet():
     """Headline finding: a single BLT-01 doublet is ~5 MWth at P50 (below the
     10 MWth heating demand); two doublets reach ~10 MWth."""

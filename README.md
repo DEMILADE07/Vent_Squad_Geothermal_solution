@@ -19,9 +19,18 @@ Datathon 2026.
 The work spans:
 
 - **Challenge 1 (60 %)** — subsurface assessment from four wells (BLT-01,
-  EVD-01, JUT-01, PKP-01) plus ThermoGIS P10/P50/P90 envelopes.
+  EVD-01, JUT-01, PKP-01) plus ThermoGIS P10/P50/P90 envelopes. The resource
+  Monte-Carlo uses a **split-lognormal** fit (reproduces ThermoGIS's published
+  P90/P50/P10 exactly) with a **physical 300 m³/h pump ceiling** on the
+  optimistic tail, and a **Gringarten–Sauty thermal-breakthrough** check
+  (`src/reservoir_thermal.py`) that proves the 1.3 km doublet is breakthrough-safe
+  over a 30-yr life.
 - **Challenge 2 (40 %)** — hybrid surface system (geothermal + ATES +
   electric heat pumps; absorption-chiller contrast) and re-derived LCOE.
+- **Economics** — a faithful Python rebuild of the TNO LCOE workbook (gated to
+  reproduce the reference to **5.769 €/GJ**), extended to a **time-varying
+  (thermal-decline) energy profile** and a **configurable economic life** (the
+  asset outlives the 15-yr loan: a 30-yr life lowers heat LCOE ~9 %).
 - **Bonus** — runnable AI-assisted pipeline (LAS → Rotliegend summary →
   Monte-Carlo MWth → hybrid LCOE).
 

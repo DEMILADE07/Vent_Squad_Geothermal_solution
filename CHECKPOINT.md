@@ -1,3 +1,32 @@
+# CHECKPOINT — 2026-06-06 (LCOE + simulation hardening, branch `shinzii`)
+
+> World-class pass on the resource Monte-Carlo and the LCOE engine. The TNO
+> `5.769049 €/GJ` reference gate stays green throughout; all 58 tests pass.
+
+**What changed**
+1. **Bounded resource tails** (`src/montecarlo.py`). New `fit_split_lognormal`
+   (two-piece) reproduces ThermoGIS's published P90/P50/P10 *exactly* — the old
+   single-sigma fit overshot BLT-01's published flow P10 (551 vs 469 m³/h),
+   inflating the optimistic resource. A `MAX_SUSTAINABLE_FLOW_M3H = 300` pump/sand
+   ceiling then de-rates the tail. Effect: single-doublet optimistic P10
+   26.9 → 14.6 MWth, mean 11.7 → 6.6; **P50 and P(≥10)=50 % unchanged**.
+2. **Thermal breakthrough** (`src/reservoir_thermal.py`, new). Gringarten-Sauty
+   doublet breakthrough + produced-temperature decline. At 1.3 km spacing
+   t_bt ≈ 155 yr ≫ 30-yr life → breakthrough-safe, constant-MWth *validated*. The
+   "thermal breakthrough" risk is now a number, not a footnote.
+3. **Time-varying + longer-life LCOE** (`src/lcoe.py`). `financed_lcoe` /
+   `heat_economics` accept a per-year MWth profile and a `lifetime_yr` override; a
+   flat profile still reproduces 5.769. A 30-yr economic life (loan still 15 yr)
+   lowers heat LCOE 11.7 → 10.6 €/GJ.
+4. Docs updated (README, technical report §3.4/§5/§6). Tests: +6
+   (`test_reservoir_thermal.py`, two in `test_lcoe.py`, two in `test_deliverability.py`).
+
+**Next (planned):** probabilistic LCOE — propagate the bounded resource MC +
+cost uncertainty through the financed model to an LCOE P10/P50/P90 + CDF; then the
+8760-hr dispatch sim and the SDE++ value case.
+
+---
+
 # CHECKPOINT — 2026-05-30 (Day 1 complete)
 
 > Resume by re-reading this file plus `PLAN.md`. Skip `CONTEXT.md` only

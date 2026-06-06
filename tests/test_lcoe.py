@@ -47,6 +47,27 @@ def test_design_a_beats_b_on_cooling_and_diverts_no_heat():
     assert b["geo_heat_consumed_for_cooling_mwth"] > 6.0
 
 
+def test_flat_profile_reproduces_scalar_and_reference():
+    """The time-varying-energy path must be a faithful generalisation: a flat MWth
+    profile equal to nameplate reproduces both the scalar result and, on the TNO
+    reference case, the 5.769 gate."""
+    import numpy as np
+    ref = HeatCase()  # TNO reference: 13.4467 MWth flat
+    mw = heat_economics(ref)["heat_mwth"]
+    flat = heat_economics(ref, heat_mwth=mw, mwth_profile=np.full(40, mw))
+    assert abs(flat["lcoe_eur_gj"] - REFERENCE_LCOE_EUR_GJ) < 1e-3
+
+
+def test_longer_economic_life_lowers_lcoe():
+    """The asset outlives the 15-yr loan; running it to 30 yr (loan unchanged)
+    lowers LCOE because energy keeps being delivered against sunk wells."""
+    cfg = SchemeConfig()
+    l15 = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_mwth_p50, lifetime_yr=15)
+    l30 = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_mwth_p50, lifetime_yr=30)
+    assert l30["lcoe_eur_gj"] < l15["lcoe_eur_gj"]
+    assert l15["lcoe_eur_gj"] - l30["lcoe_eur_gj"] > 0.5
+
+
 def test_blended_lcoe_is_heat_dominated():
     """The widest tornado spread should be a heat-side driver, not a cooling one
     (the system is heat-dominated)."""

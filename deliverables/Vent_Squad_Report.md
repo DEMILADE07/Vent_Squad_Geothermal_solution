@@ -34,10 +34,14 @@ non-productive by ThermoGIS and by my own Darcy model.
 The headline tension is this: the Dutch industry benchmark gets ~13 MWth from a
 *single* doublet because its reference reservoir is hotter (~94 °C) and more
 permeable. **Our 77 °C reservoir yields only ~5 MWth per doublet** (Monte-Carlo
-P50 **5.06 MWth**, with only a 31 % chance of clearing 10 MWth alone). To meet the
+P50 **5.05 MWth**, with only a 29 % chance of clearing 10 MWth alone). To meet the
 heating demand I therefore size a **two-doublet (four-well) scheme**, which reaches
-a P50 of **10.12 MWth** and a **50 % probability of clearing 10 MWth** — an honest
-coin-flip that I do not dress up as a certainty.
+a P50 of **10.11 MWth** and a **50 % probability of clearing 10 MWth** — an honest
+coin-flip that I do not dress up as a certainty. The resource distribution is
+**physically bounded**: the optimistic tail is fitted to ThermoGIS's published band
+with a two-piece (split) lognormal that reproduces all three percentiles exactly,
+then de-rated at a pump/sand-control ceiling of 300 m³/h per doublet — so the
+upside is real-world deliverable, not a fitting artefact.
 
 For the surface system I recommend **Design A: geothermal doublets → plate heat
 exchangers → district hot loop, with cooling from seasonal ATES (aquifer thermal
@@ -177,18 +181,37 @@ that back-solves from their numbers:
 Matching the national database to ~1 % earns me the right to use the model for
 what-if scenarios.
 
-**Probabilistic MWth** (`src/montecarlo.py`). I fit a lognormal to the ThermoGIS
-flow P90/P50/P10 band, draw 10,000 realisations, push each through the power
-equation, and report the distribution rather than a point:
+**Probabilistic MWth** (`src/montecarlo.py`). I fit a **split (two-piece)
+lognormal** to the ThermoGIS flow P90/P50/P10 band — a single-sigma fit cannot hit
+both tails of a log-asymmetric band and overshoots ThermoGIS's *own* published P10
+(551 vs 469 m³/h at BLT-01), inflating the optimistic resource; the split fit
+reproduces all three published points exactly. I then **de-rate every realisation
+at a 300 m³/h pump/sand-control ceiling** (NL doublets run 100–300 m³/h), draw
+10,000 realisations, and report the distribution rather than a point:
 
 | Scheme | P90 | **P50** | P10 | Mean | **P(MWth ≥ 10)** |
 |--------|-----|---------|-----|------|------------------|
-| 1 doublet @ BLT-01 | 1.00 | **5.06** | 26.9 | 11.7 | **31 %** |
-| **2 doublets @ BLT-01** | 2.01 | **10.12** | 53.9 | 23.3 | **50 %** |
-| 1 doublet @ JUT-01 | 1.14 | 2.39 | 4.88 | 2.79 | 0.5 % |
+| 1 doublet @ BLT-01 | 0.86 | **5.05** | 14.6 | 6.6 | **29 %** |
+| **2 doublets @ BLT-01** | 1.71 | **10.11** | 29.3 | 13.2 | **50 %** |
+| 1 doublet @ JUT-01 | 1.11 | 2.39 | 4.75 | 2.73 | 0.4 % |
 
-EVD-01 and PKP-01 carry a ThermoGIS flow of zero — they are non-productive and are
-not candidate doublet sites. (Distribution chart: `figures/mc_mwth_blt.png`.)
+The bounding tightens the optimistic tail (single-doublet P10 26.9 → 14.6 MWth) and
+pulls the mean down from 11.7 to 6.6 — much nearer the 5.1 median, as a bounded
+resource should be — while leaving the **P50 and the 50 % P(≥10) decision metric
+essentially unchanged**. EVD-01 and PKP-01 carry a ThermoGIS flow of zero — they
+are non-productive and are not candidate doublet sites. (Distribution chart:
+`figures/mc_mwth_blt.png`.)
+
+**Thermal sustainability — breakthrough is modelled, not assumed**
+(`src/reservoir_thermal.py`). The economics assume the produced temperature holds
+for the field life; I check that with the **Gringarten & Sauty (1975)** doublet
+solution. The cold front reaches the producer at
+`t_bt = (π·H·L²/3Q)·(ρc_bulk/ρc_water)`. At the recommended **1.3 km spacing the
+breakthrough time is ~155 yr — far beyond a 30-yr economic life** — so the produced
+temperature decline over the project is **0.0 °C and the constant-MWth assumption is
+validated rather than asserted.** A spacing sensitivity shows where it *would* bite
+(1.0 km → 92 yr, 0.6 km → 33 yr, 0.4 km → 15 yr): the 1.3 km design is
+deliberately breakthrough-safe, the standard NL doublet rationale.
 
 **The conclusion the data forces:** one doublet does not meet the heating demand
 (only 31 % likely). **Two doublets are the honest minimum** for a coin-flip-or-
@@ -283,6 +306,14 @@ are trusted. It does, to the third decimal, and a unit test locks it.
 | **Total capex** | **€19.9 M** |
 | TNO heat-only reference | 5.77 €/GJ |
 
+**Economic-life lever.** The headline above caps the cash flow at the 15-yr loan
+term, matching the TNO reference for a like-for-like benchmark. But the wells are
+sunk capital that keep delivering heat long after the loan is repaid: extending the
+economic life to a realistic **30 yr (loan unchanged at 15 yr) lowers heat LCOE from
+11.7 to 10.6 €/GJ (−9 %)** with no new capital. I report the 15-yr figure as the
+benchmark-comparable headline and the 30-yr figure as the bankable upside, because
+the thermal-breakthrough check above confirms the resource is good for it.
+
 **Sensitivities (tornado, `figures/lcoe_tornado.png`).** The LCOE is
 **heat-dominated**: the top drivers are resource deliverability (MWth), heat
 load-hours, and drilling cost per metre. The cooling-side knobs (ATES capex,
@@ -299,7 +330,7 @@ for 13 MWth. That clean cause-and-effect is the spine of the report.
 
 | Risk | Mitigation / note |
 |------|-------------------|
-| **Thermal breakthrough** — injected cold reaching the producer | 1.3 km spacing per NL precedent; an analytic (Lauwerier/Gringarten) time-to-breakthrough estimate is the recommended next check. |
+| **Thermal breakthrough** — injected cold reaching the producer | **Quantified** (`src/reservoir_thermal.py`, Gringarten-Sauty): ~155 yr at the 1.3 km design spacing, far beyond the economic life — breakthrough-safe. Decline only enters the LCOE below ~0.5 km spacing. |
 | **Resource optimism** (top LCOE driver) | Full P10–P90 propagated; the headline is the P50 with P(≥10) = 50 % stated plainly. |
 | **ATES sizing** | Sized off the summer peak, not the annual mean; 4 pairs with 30 % margin. |
 | **ATES regulatory risk (NL)** | Dutch ATES permitting is well-established but site-specific; flagged for the permitting phase. |
@@ -388,5 +419,5 @@ transient thermal-breakthrough simulation at the chosen spacing.
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.
 
-*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (50 tests)
+*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (58 tests)
 then `.venv\Scripts\python.exe -m src.pipeline all`.*

@@ -63,6 +63,12 @@ WATER_DENSITY_KG_M3 = 1000.0     # close enough at this T and salinity
 WATER_HEAT_CAPACITY_J_KGK = 4180.0
 WATER_VISCOSITY_PA_S = 3.5e-4    # ~77 degC, fresh-ish brine
 
+# Rock matrix thermal properties (TNO Input_Output!K7,K8 — Rho_rock, Cp_rock).
+# Used for the bulk volumetric heat capacity that retards the thermal front.
+ROCK_DENSITY_KG_M3 = 2700.0
+ROCK_HEAT_CAPACITY_J_KGK = 1000.0
+SECONDS_PER_YEAR = 31_557_600.0  # 365.25 d, matches TNO Input_Output!K20
+
 
 # ---------------------------------------------------------------------------
 # Doublet design defaults (NL Rotliegend precedent)

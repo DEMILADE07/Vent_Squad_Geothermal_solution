@@ -116,7 +116,7 @@ simulation. These are the right next-phase activities, not feasibility-stage one
    actually along-hole **MD** (feet for JUT-01). We reverse-engineered the structure,
    matched each row to its exact LAS sample by GR, recovered the TVD, and cleared
    the flag (`src/targets.py`). Cross-check against the lithostratigraphic tops
-   agrees to **0.0 m** for BLT-01/EVD-01/PKP-01; JUT-01 is flagged (see §3.1).
+   agrees to **0.0 m** for BLT-01/EVD-01/PKP-01; JUT-01 is flagged (see Section 3.1).
 
 **External data and citations.** ThermoGIS / DINOloket (TNO) for the reservoir
 P-distributions and the LCOE reference workbook (van Wees et al., TNO LCOE model);
@@ -175,7 +175,7 @@ smooths over — PKP-01's 0.10, for instance, reflects log character consistent 
 its ThermoGIS permeability of just 1 mD. We trust the well-specific logs over the
 play-average where they disagree, which makes our estimate the **more conservative**
 of the two. Crucially, this does not distort Challenge 1: our resource MWth is
-anchored on ThermoGIS's *own* published flow-rate distribution (§3.4), not on our
+anchored on ThermoGIS's *own* published flow-rate distribution (Section 3.4), not on our
 NTG, so the disagreement changes none of the deliverability numbers — it only makes
 our characterisation of the non-anchor wells stricter. (See *Appendix B* for the
 BLT-01 petrophysical track and MD→TVD QC plots.)
@@ -264,7 +264,7 @@ a near-term design constraint at spacings well below 1 km.
 
 ### 3.5 Cross-well validation (bonus AI)
 
-See §7 for the leave-one-well-out result. The short version: cross-well log
+See Section 7 for the leave-one-well-out result. The short version: cross-well log
 prediction is **not** reliable enough on these four distinct wells to feed the
 resource calc, so we fall back to ThermoGIS deterministic values for the missing
 curves — and we prove that with an honest R², rather than trusting an in-sample fit.
@@ -292,7 +292,7 @@ the heat pump picking up the peak. So the 6,000-hour assumption is only valid un
 **baseload operation** — which is exactly how the recommended scheme runs the
 geothermal and trims with heat pumps. The same simulation confirms the cooling peak
 of 5 MWth and, at the conservative 1 MWth/pair throughput, a deterministic-peak ATES
-need of 5 pairs — below the 6 the probabilistic sizing (§4.2) carries for confidence.
+need of 5 pairs — below the 6 the probabilistic sizing (Section 4.2) carries for confidence.
 
 ### 4.2 Design A — geothermal + ATES + heat pumps (recommended)
 
@@ -337,7 +337,7 @@ trade-off.
    revenue-generating output. 2. **Physics** — a single-effect LiBr/H₂O absorption
    chiller wants 85–95 °C drive heat (ASHRAE); our reservoir is 77 °C,
    marginal-to-insufficient. 3. **Cost** — once ATES is sized *robustly* (6 pairs,
-   §4.2) rather than to an optimistic midpoint, Design A's cooling LCOE is on par
+   Section 4.2) rather than to an optimistic midpoint, Design A's cooling LCOE is on par
    with Design B, marginally below it. We deliberately do **not** lean the
    recommendation on a large cost advantage that the honest sizing does not support;
    Design A wins on keeping the heat and on the thermodynamics, with cost a wash.
@@ -387,7 +387,7 @@ for 13 MWth. That clean cause-and-effect is the spine of the report.
 **Reconciling the load factor — the honest caveat behind 11.8 €/GJ.** This number is
 priced at **6,000 full-load-equivalent (FLEQ) hours** — the utilisation that
 direct-use geothermal *needs* to be economic, and that NL schemes routinely reach by
-baseloading high-load-factor heat customers. Our own 8,760-hour dispatch (§4.1) is
+baseloading high-load-factor heat customers. Our own 8,760-hour dispatch (Section 4.1) is
 deliberately explicit about the consequence: a doublet *peak-sized to this district's
 comfort heat demand and run comfort-only* sees just **~3,170 FLEQ → ~21 €/GJ**,
 because space-heat demand is peaky. That is exactly why the design runs the
@@ -448,7 +448,7 @@ extended.)
 | Risk | Mitigation / note |
 |------|-------------------|
 | **Thermal breakthrough** — injected cold reaching the producer | **Quantified** (`src/reservoir_thermal.py`): Gringarten-Sauty t_bt ≈ 177 yr at 1.3 km spacing ≫ 30-yr life, so produced temperature holds flat — the constant-MWth assumption is validated, not assumed. |
-| **Resource optimism** (top LCOE driver) | Full P10–P90 propagated, with the optimistic tail bounded by a 300 m³/h pump ceiling; the headline is the two-doublet P50 (13.2 MWth) with P(≥10) = 62 % stated plainly, the LCOE sized on the 10 MWth *delivered* demand, and the resource downside carried explicitly in the probabilistic LCOE tail (§5). |
+| **Resource optimism** (top LCOE driver) | Full P10–P90 propagated, with the optimistic tail bounded by a 300 m³/h pump ceiling; the headline is the two-doublet P50 (13.2 MWth) with P(≥10) = 62 % stated plainly, the LCOE sized on the 10 MWth *delivered* demand, and the resource downside carried explicitly in the probabilistic LCOE tail (Section 5). |
 | **ATES sizing** | Per-pair throughput probabilised (0.5–2.0 MWth, triangular); sized to clear 5 MWth at the low end — 6 pairs give P(supply ≥ 5 MWth) = 99.8 % and a conservative P90 supply of 6.0 MWth. |
 | **ATES regulatory risk (NL)** | Dutch ATES permitting is well-established but site-specific; flagged for the permitting phase. |
 | **Drilling cost volatility** | Among the top three LCOE sensitivities; carried in the tornado. |
@@ -574,6 +574,37 @@ built is what makes either bankable.**
 
 ---
 
+## 10. Use of AI tools and external sources
+
+**Use of AI tools.** In line with the datathon guidelines, which disqualify
+undisclosed AI-generated analysis, Team Vent Squad discloses that AI assistants were
+used as a tool — to brainstorm, refine ideas, and
+speed up specified engineering directives. All subsurface, engineering, and economic
+analysis — the models, the assumptions, the numbers, and the design decisions — was
+specified, reviewed, and validated by the team, and every figure and result in this
+submission is reproducible from our own code (`python -m src.build_all`). AI
+accelerated the work; the engineering judgment and the results are our own.
+
+**References.** All external data and methods are attributed below; nothing in this
+submission reuses a pre-existing public solution.
+
+- **Data & databases** — ThermoGIS, DINOloket and NLOG (TNO / Geological Survey of
+  the Netherlands): reservoir P10/P50/P90 distributions, well logs, lithostratigraphy.
+- **Economics** — TNO geothermal LCOE workbook (van Wees et al., 2012), the provided
+  `LCOE.xlsx`, used as our validation reference (reproduced to 5.769 €/GJ).
+- **Petrophysics** — Larionov (1969), gamma-ray shale-volume transform for older
+  rocks; Wyllie et al. (1956), sonic (time-average) porosity.
+- **Reservoir thermal** — Gringarten & Sauty (1975), doublet thermal breakthrough and
+  produced-temperature decline.
+- **ATES** — Fleuchaus et al. (2018, *Renewable & Sustainable Energy Reviews*) and
+  Bloemendal & Hartog (2018) for ATES throughput, round-trip efficiency and sizing.
+- **Surface equipment** — ASHRAE Handbook (absorption-chiller COP and the 85–95 °C
+  drive-temperature window); IEA Heat Pump Technologies (HPT) for heat-pump COP.
+- **Doublet precedent** — published NL Rotliegend geothermal doublets for flow rates
+  (100–300 m³/h), drilling cost, and ATES capex ranges.
+
+---
+
 ## Appendices
 
 - **A. Petrophysical equations & constants** — Larionov-older V_sh, density-φ
@@ -587,13 +618,8 @@ built is what makes either bankable.**
   `data/processed/mc_mwth_summary.csv`.
 - **D. Full LCOE input table with sources** — `data/processed/LCOE_hybrid.xlsx`
   (Inputs sheet carries the per-parameter source column).
-- **E. External data citation list** — ThermoGIS / DINOloket (TNO) for the reservoir
-  P-distributions; TNO LCOE workbook (van Wees et al., 2012) as the LCOE reference;
-  NL Rotliegend doublet flow-rate (100–300 m³/h), drilling-cost and ATES-capex
-  precedent; ATES per-pair throughput and round-trip efficiency (Fleuchaus et al.,
-  *Renew. Sustain. Energy Rev.*, 2018; Bloemendal & Hartog, 2018); heat-pump COP
-  (IEA HPT); absorption-chiller COP_th and 85–95 °C drive-temperature window
-  (ASHRAE). Per-parameter source mapping in `LCOE_hybrid.xlsx` (Inputs sheet).
+- **E. External data & references** — full reference list in Section 10; the per-parameter
+  source mapping is in `LCOE_hybrid.xlsx` (Inputs sheet).
 - **F. ML cross-validation detail** — `figures/ml_coverage.png`,
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.

@@ -88,7 +88,6 @@ jupyter lab notebooks/              # explore the analysis notebooks
 ```
 .
 ├── README.md                    # this file
-├── CONTEXT.md                   # data inventory + challenge brief (data dictionary)
 ├── PROJECT_WALKTHROUGH.md       # plain-English companion to the report, for evaluators
 ├── requirements.txt             # pinned, cross-platform dependencies
 ├── LCOE.xlsx                    # original TNO workbook (reference, untouched)
@@ -135,3 +134,16 @@ jupyter lab notebooks/              # explore the analysis notebooks
   Silicon) and Linux.
 - `pytest -q` runs the full suite from a clean clone; the figures the report and
   deck embed are tracked under `figures/`.
+
+## Use of AI tools & references
+
+Per the datathon guidelines, we disclose that AI assistants were used as a tool — to
+brainstorm, refine ideas, and speed up specified engineering directives. All analysis,
+assumptions, and design decisions were made and validated by the team, and every
+number is reproducible from our code (`python -m src.build_all`).
+
+External sources are attributed in full in the report (Section 10). Key references: ThermoGIS /
+DINOloket / NLOG (TNO); the TNO LCOE workbook (van Wees et al., 2012); Larionov (1969)
+and Wyllie et al. (1956) for petrophysics; Gringarten & Sauty (1975) for thermal
+breakthrough; Fleuchaus et al. (2018) and Bloemendal & Hartog (2018) for ATES; ASHRAE
+and IEA HPT for surface-equipment performance.

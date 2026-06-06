@@ -350,7 +350,7 @@ developed for *power* — a different model from our low-enthalpy direct-use sch
 Where *this* template genuinely fits: **North African / intracratonic sedimentary
 basins** (Algeria, Tunisia, Egypt — direct-use heat) and, more relevantly for a
 cooling-hungry continent, the **hybrid-cooling** half of our design for
-cooling-dominated African cities. (Full discussion in §9 of the report.)
+cooling-dominated African cities. (Full discussion in Section 9 of the report.)
 
 ---
 
@@ -432,6 +432,24 @@ jupyter lab notebooks/              # 01_eda · 03_resource_montecarlo · 04_lco
 needs the OpenMP runtime. Install it once if you want to run the ML stage — macOS
 `brew install libomp`, Debian/Ubuntu `sudo apt-get install libgomp1`. Everything else
 (every headline resource and economics number) reproduces without it.
+
+---
+
+# Use of AI tools & references
+
+**Use of AI tools.** Per the datathon guidelines, we disclose that AI assistants were
+used as a tool — to brainstorm, refine ideas, and speed up specified engineering
+directives. All analysis, assumptions, and design decisions were made and validated by
+the team, and every number is reproducible from our code (`python -m src.build_all`).
+
+**References.** External data and methods are attributed in full in the report (Section 10).
+In brief: ThermoGIS / DINOloket / NLOG (TNO) for reservoir and well data; the TNO LCOE
+workbook (van Wees et al., 2012) for the economics reference; Larionov (1969) and
+Wyllie et al. (1956) for petrophysics; Gringarten & Sauty (1975) for thermal
+breakthrough; Fleuchaus et al. (2018) and Bloemendal & Hartog (2018) for ATES; and
+ASHRAE and IEA HPT for surface-equipment performance.
+
+---
 
 *Questions about any of this are welcome — this document exists precisely so the
 reasoning behind every number is open and checkable.*

@@ -67,7 +67,7 @@ but tight; EVD weak; JUT structurally complex. One well is the obvious anchor. O
 log-based NTG matches ThermoGIS at BLT and is deliberately stricter elsewhere — we
 flag that honestly rather than claim a false "consistent."
 
-**Figure:** ThermoGIS comparison table (from §3.3 of the report).
+**Figure:** ThermoGIS comparison table (from Section 3.3 of the report).
 
 ---
 
@@ -135,7 +135,7 @@ it's a tie once ATES is sized honestly — so A wins on the two things that aren
 close: it keeps the ~7 MWth of heat we're in business to sell, and it actually
 works at 77 °C, where an absorption chiller is starved of drive heat.
 
-**Figure:** Design A vs B comparison table (from §4.4).
+**Figure:** Design A vs B comparison table (from Section 4.4).
 
 ---
 

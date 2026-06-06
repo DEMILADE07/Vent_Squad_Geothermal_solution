@@ -59,7 +59,9 @@ whose heavy upper tail is resource risk, not cost risk** (P50 11.8 €/GJ; §5).
 heat price is ~2× the Dutch
 heat-only benchmark, and I can attribute the gap precisely: a cooler, less
 productive reservoir needs four wells for 10 MWth where the benchmark needs two for
-13 MWth.
+13 MWth. Framed as the subsidised low-carbon asset it actually is, the scheme
+**abates ~13 kt CO₂/yr and clears a 15 % equity hurdle with SDE++ at ~61 €/tCO₂** —
+competitive in the Dutch auction (§5).
 
 **If you read nothing else:** the resource is real but modest; two doublets are the
 honest minimum; Design A is the right surface scheme; and the whole chain — raw LAS
@@ -374,6 +376,27 @@ truncates the tail. Reported at three hurdle rates (P50 heat LCOE 11.0 / 11.8 / 
 than buried in the discount factor. CDF and histogram:
 `figures/lcoe_heat_distribution.png`.
 
+**From cost to investment decision — CO₂, SDE++, and returns**
+(`src/value_case.py`). An LCOE is a cost, not a verdict. Three further numbers
+decide whether this gets built, all in Dutch-market terms:
+
+- **Carbon.** Displacing gas-fired heat (90 % condensing boiler), net of the grid
+  electricity the pumps draw, the scheme **abates ~13,100 t CO₂/yr** (≈ 196 kt over
+  a 15-yr term).
+- **SDE++.** Dutch geothermal heat is financed by **SDE++**, which pays the gap
+  between the cost price (our LCOE, 11.7 €/GJ) and the gas-linked market value
+  (~8 €/GJ): a **subsidy of ~3.7 €/GJ (≈ €0.8 M/yr)**. The auction ranks bids by
+  **subsidy per tonne abated — here ~61 €/tCO₂**, comfortably inside the fundable
+  range (the SDE++ ceiling is ~300 €/t) and competitive against other heat options.
+- **Returns.** At a gas-linked heat tariff (~9 €/GJ) the project is under water on
+  the market alone — it cannot cover an 11.7 €/GJ cost — but **with the SDE++ top-up
+  the equity IRR is ~21 %**, clearing the 15 % hurdle; on a 30-yr life the subsidy
+  need falls to ~2.6 €/GJ (44 €/tCO₂). The value model is the LCOE model *extended*:
+  a flat tariff equal to the LCOE returns exactly the 15 % hurdle, which a unit test
+  locks. **The honest reading: this works as a subsidised, low-carbon heat asset —
+  exactly how every Dutch geothermal doublet is financed — not as a merchant project
+  at today's gas price.**
+
 **Sensitivities (tornado, `figures/lcoe_tornado.png`).** The LCOE is
 **heat-dominated**: the top drivers are resource deliverability (MWth), heat
 load-hours, and drilling cost per metre. The cooling-side knobs (ATES capex,
@@ -411,9 +434,10 @@ deterministically, each stage persisting an artefact the next consumes:
 ```
 python -m src.pipeline ingest   # raw LAS  -> well_logs.parquet (+ recovered targets)
 python -m src.pipeline petro    #          -> rotliegend_summary.csv (+ deliverability)
-python -m src.pipeline predict  #          -> mc_mwth.parquet (Monte-Carlo MWth)
+python -m src.pipeline predict  #          -> mc_mwth.parquet (Monte-Carlo MWth, bounded)
+python -m src.pipeline dispatch #          -> dispatch_summary.csv (8760-h load-hours)
 python -m src.pipeline ml        #          -> ml_loo_cv.csv + ml_log_predictions.parquet
-python -m src.pipeline lcoe      #          -> LCOE_hybrid.xlsx
+python -m src.pipeline lcoe      #          -> LCOE_hybrid.xlsx + lcoe_mc_summary.csv + value_case.csv
 python -m src.pipeline all        # everything, in order
 ```
 
@@ -479,5 +503,5 @@ transient thermal-breakthrough simulation at the chosen spacing.
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.
 
-*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (70 tests)
+*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (75 tests)
 then `.venv\Scripts\python.exe -m src.pipeline all`.*

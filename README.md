@@ -26,14 +26,19 @@ The work spans:
   (`src/reservoir_thermal.py`) that proves the 1.3 km doublet is breakthrough-safe
   over a 30-yr life.
 - **Challenge 2 (40 %)** — hybrid surface system (geothermal + ATES +
-  electric heat pumps; absorption-chiller contrast) and re-derived LCOE.
+  electric heat pumps; absorption-chiller contrast) and re-derived LCOE, with an
+  **8760-hour dispatch simulation** (`src/dispatch.py`) that derives the load-hours,
+  ATES sizing and the geothermal baseload-vs-peak trade instead of assuming them.
 - **Economics** — a faithful Python rebuild of the TNO LCOE workbook (gated to
   reproduce the reference to **5.769 €/GJ**), extended to a **time-varying
   (thermal-decline) energy profile** and a **configurable economic life** (the
   asset outlives the 15-yr loan: a 30-yr life lowers heat LCOE ~9 %), plus a
   **probabilistic LCOE** (`src/lcoe_montecarlo.py`) that propagates the bounded
   resource + cost uncertainty to a **P10/P50/P90 distribution and CDF** (heat P50
-  11.8 €/GJ; the heavy upper tail is resource risk, the case for staged appraisal).
+  11.8 €/GJ; the heavy upper tail is resource risk, the case for staged appraisal),
+  and a **value case** (`src/value_case.py`): CO₂ abated (~13 kt/yr), the **SDE++
+  subsidy** (~61 €/tCO₂) and equity **NPV/IRR** at a heat tariff — the Dutch
+  investment view, not just the cost.
 - **Bonus** — runnable AI-assisted pipeline (LAS → Rotliegend summary →
   Monte-Carlo MWth → hybrid LCOE).
 

@@ -34,11 +34,18 @@
    coverage** with the heat pump covering peak — the ~6,000 h assumption holds only
    under baseload operation. ATES 4-pair sizing validated by the 5 MWth peak. Wired
    into `pipeline.py dispatch`.
-6. Docs updated (README, technical report §3.4/§4.1/§5/§6). Tests: **70 pass** (+18
-   this branch); TNO `5.769049` gate green throughout.
+6. **SDE++ value case** (`src/value_case.py`, new). CO₂ abatement (~13 kt/yr,
+   displaced gas net of grid power), the **SDE++ subsidy** (base LCOE − gas-linked
+   market ref → ~3.7 €/GJ, ~61 €/tCO₂ — the auction ranking metric), and project
+   **NPV/IRR** at a heat tariff (equity IRR ~21 % with SDE++; flat tariff = LCOE
+   returns the 15 % hurdle exactly, locked by a test). Wired into `pipeline.py lcoe`.
+7. Docs updated (README, technical report §3.4/§4.1/§5/§6 + exec summary). Tests:
+   **75 pass** (+23 this branch); TNO `5.769049` gate green throughout.
 
-**Next (planned):** SDE++ subsidy + value case (NPV/IRR at a heat tariff, €/tCO₂
-abated, gas displaced) — turn the cost number into a Dutch investment decision.
+**Roadmap complete** (bounded resource → thermal breakthrough → longer-life LCOE →
+probabilistic LCOE → 8760-h dispatch → SDE++ value case). Possible further work:
+correlated multi-variable resource MC; well-interference for the 2-doublet scheme;
+hourly ATES charge/discharge energy balance; LLM exec-summary (WS5.3).
 
 ---
 

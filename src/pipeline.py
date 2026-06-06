@@ -40,6 +40,7 @@ from src.paths import (
     LCOE_MC_HURDLE_CSV,
     LCOE_MC_SUMMARY_CSV,
     MC_MWTH_PARQUET,
+    VALUE_CASE_CSV,
     ML_LOO_CV_CSV,
     ML_PREDICTIONS_PARQUET,
     ROTLIEGEND_SUMMARY_CSV,
@@ -205,8 +206,17 @@ def stage_lcoe(draws: int = 10_000) -> dict:
     _df_table(summary, "Probabilistic LCOE — P10/P50/P90 (EUR/GJ)")
     console.print(f"[green]wrote[/] {LCOE_MC_SUMMARY_CSV.name}, "
                   f"{LCOE_MC_HURDLE_CSV.name} and lcoe_*_distribution.png")
+
+    from src.value_case import value_summary
+    val = value_summary()
+    pd.DataFrame([val]).to_csv(VALUE_CASE_CSV, index=False)
+    console.print(f"[green]wrote[/] {VALUE_CASE_CSV.name}")
+    console.print(f"[dim]Value case: {val['co2_net_abated_t_yr']:.0f} t CO2/yr abated; "
+                  f"SDE++ {val['sde_subsidy_eur_gj']} EUR/GJ "
+                  f"({val['sde_abatement_cost_eur_t']} EUR/t CO2); "
+                  f"equity IRR {val['equity_irr_with_sde']:.0%} with SDE++.[/]")
     return {"lcoe": path, "lcoe_mc": LCOE_MC_SUMMARY_CSV,
-            "lcoe_hurdle": LCOE_MC_HURDLE_CSV}
+            "lcoe_hurdle": LCOE_MC_HURDLE_CSV, "value_case": VALUE_CASE_CSV}
 
 
 # ---------------------------------------------------------------------------

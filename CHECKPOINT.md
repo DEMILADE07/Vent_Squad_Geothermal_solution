@@ -42,10 +42,18 @@
 7. Docs updated (README, technical report §3.4/§4.1/§5/§6 + exec summary). Tests:
    **75 pass** (+23 this branch); TNO `5.769049` gate green throughout.
 
-**Roadmap complete** (bounded resource → thermal breakthrough → longer-life LCOE →
-probabilistic LCOE → 8760-h dispatch → SDE++ value case). Possible further work:
-correlated multi-variable resource MC; well-interference for the 2-doublet scheme;
-hourly ATES charge/discharge energy balance; LLM exec-summary (WS5.3).
+8. **Joint correlated scheme MC** (`montecarlo.simulate_scheme`). Replaces the
+   "2× one draw" shorthand with correlated doublets (ρ≈0.6 shared-reservoir +
+   well-specific), ±4 °C temperature uncertainty (no ThermoGIS band), and a ~10 %
+   well-interference derate. Effects partly cancel: imperfect correlation lifts the
+   downside (P90 1.7→~2.1 MWth), interference trims the median → **headline P50 ~10.1,
+   P(≥10) ~0.50 robust**. Wired into `pipeline.py predict` (mc_scheme_summary.csv).
+   Tests: **79 pass**; TNO gate green.
+
+**Roadmap complete + extended** (bounded resource → thermal breakthrough →
+longer-life LCOE → probabilistic LCOE → 8760-h dispatch → SDE++ value case → joint
+correlated scheme MC). Possible further work: hourly ATES charge/discharge energy
+balance; LLM exec-summary (WS5.3).
 
 ---
 

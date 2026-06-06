@@ -40,6 +40,7 @@ from src.paths import (
     LCOE_MC_HURDLE_CSV,
     LCOE_MC_SUMMARY_CSV,
     MC_MWTH_PARQUET,
+    MC_SCHEME_CSV,
     VALUE_CASE_CSV,
     ML_LOO_CV_CSV,
     ML_PREDICTIONS_PARQUET,
@@ -127,9 +128,18 @@ def stage_predict(n: int = 10_000) -> dict:
     ], ignore_index=True)
     mc_sum.to_csv(MC_SUMMARY_CSV, index=False)
     _df_table(mc_sum, "Monte-Carlo MWth (P(scheme >= 10 MWth))")
-    console.print(f"[green]wrote[/] {MC_MWTH_PARQUET.name} ({len(mc):,} draws) and "
-                  f"{MC_SUMMARY_CSV.name}")
-    return {"mc": MC_MWTH_PARQUET, "mc_summary": MC_SUMMARY_CSV}
+
+    # Joint scheme MC: correlated doublets + temperature uncertainty + interference.
+    from src.montecarlo import simulate_scheme, summarise_scheme
+    scheme = pd.DataFrame([
+        summarise_scheme(simulate_scheme(tg, "BLT-01", n_doublets=nd, n=n), 10.0)
+        for nd in (1, 2)
+    ])
+    scheme.to_csv(MC_SCHEME_CSV, index=False)
+    _df_table(scheme, "Joint scheme MWth (correlated doublets + T + interference)")
+    console.print(f"[green]wrote[/] {MC_MWTH_PARQUET.name} ({len(mc):,} draws), "
+                  f"{MC_SUMMARY_CSV.name} and {MC_SCHEME_CSV.name}")
+    return {"mc": MC_MWTH_PARQUET, "mc_summary": MC_SUMMARY_CSV, "scheme": MC_SCHEME_CSV}
 
 
 def stage_ml() -> dict:

@@ -218,8 +218,19 @@ validated rather than asserted.** A spacing sensitivity shows where it *would* b
 (1.0 km → 92 yr, 0.6 km → 33 yr, 0.4 km → 15 yr): the 1.3 km design is
 deliberately breakthrough-safe, the standard NL doublet rationale.
 
+**Joint, correlated scheme model.** The "two doublets = twice one draw" shorthand
+hides two real effects, so I model them (`src/montecarlo.py`, `simulate_scheme`):
+the doublets share one reservoir but drain different rock (flow correlation
+**ρ ≈ 0.6**, not 1.0); reservoir temperature carries a ±4 °C gradient/BHT
+uncertainty ThermoGIS does not publish; and producers in an array interfere
+(**~10 % deliverability derate**). The effects partly cancel — imperfect correlation
+*improves* the downside (two doublets are less likely to both be poor: P90 rises from
+1.7 to **~2.1 MWth**), while interference trims the median — so the headline holds:
+**two-doublet P50 ≈ 10.1 MWth, P(≥10) ≈ 0.50**, robust to the more sophisticated
+treatment rather than dependent on the shorthand.
+
 **The conclusion the data forces:** one doublet does not meet the heating demand
-(only 31 % likely). **Two doublets are the honest minimum** for a coin-flip-or-
+(only 29 % likely). **Two doublets are the honest minimum** for a coin-flip-or-
 better chance of 10 MWth, and everything downstream assumes the four-well scheme.
 
 **Doublet siting.** A 5-criterion weighted matrix (deliverable MWth ×4, distance
@@ -414,7 +425,7 @@ for 13 MWth. That clean cause-and-effect is the spine of the report.
 | Risk | Mitigation / note |
 |------|-------------------|
 | **Thermal breakthrough** — injected cold reaching the producer | **Quantified** (`src/reservoir_thermal.py`, Gringarten-Sauty): ~155 yr at the 1.3 km design spacing, far beyond the economic life — breakthrough-safe. Decline only enters the LCOE below ~0.5 km spacing. |
-| **Resource optimism** (top LCOE driver) | Full P10–P90 propagated; the headline is the P50 with P(≥10) = 50 % stated plainly. |
+| **Resource optimism** (top LCOE driver) | Full P10–P90 propagated through a *joint* scheme model (doublet correlation ρ≈0.6, ±4 °C temperature, ~10 % well-interference derate); headline is the P50 with P(≥10) ≈ 50 % stated plainly. Physically-bounded tails (split-lognormal + 300 m³/h cap). |
 | **ATES sizing** | Sized off the summer peak, not the annual mean; 4 pairs with 30 % margin. |
 | **ATES regulatory risk (NL)** | Dutch ATES permitting is well-established but site-specific; flagged for the permitting phase. |
 | **Drilling cost volatility** | Among the top three LCOE sensitivities; carried in the tornado. |
@@ -503,5 +514,5 @@ transient thermal-breakthrough simulation at the chosen spacing.
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.
 
-*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (75 tests)
+*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (79 tests)
 then `.venv\Scripts\python.exe -m src.pipeline all`.*

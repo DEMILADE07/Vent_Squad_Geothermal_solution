@@ -62,17 +62,87 @@ def fit_split_lognormal(p90, p50, p10):
     return mu, sigma_lo, sigma_hi
 
 
-def _sample_split_lognormal(rng, mu, sigma_lo, sigma_hi, n):
-    """Draw n samples from the two-piece lognormal of ``fit_split_lognormal``.
+def _split_lognormal_from_z(mu, sigma_lo, sigma_hi, z):
+    """Map standard-normal draws ``z`` to the two-piece lognormal of fit_split_lognormal.
 
-    A single standard normal z selects the side (z<0 below the median, z>0 above)
-    and supplies the magnitude; the per-draw sigma switches at the median. P(z<0)
-    = 0.5 keeps exp(mu) the exact median, and the |z|=z90 points map to the
-    published P90/P10 by construction.
+    z<0 uses the below-median sigma, z>0 the above-median sigma; |z|=z90 maps to the
+    published P90/P10 and exp(mu) is the exact median. Split out so that correlated
+    draws (shared a common z) can be turned into flows the same way.
     """
-    z = rng.standard_normal(n)
+    z = np.asarray(z, float)
     sigma = np.where(z < 0.0, sigma_lo, sigma_hi)
     return np.exp(mu + sigma * z)
+
+
+def _sample_split_lognormal(rng, mu, sigma_lo, sigma_hi, n):
+    """Draw n independent samples from the two-piece lognormal of fit_split_lognormal."""
+    return _split_lognormal_from_z(mu, sigma_lo, sigma_hi, rng.standard_normal(n))
+
+
+# Joint-uncertainty defaults for the multi-doublet scheme (src: see simulate_scheme).
+TEMP_SIGMA_C = 4.0              # 1-sigma reservoir T (gradient + BHT; ThermoGIS gives no band)
+DOUBLET_FLOW_CORRELATION = 0.6  # shared-reservoir vs well-specific share of flow variance
+INTERFERENCE_DERATE = 0.90      # per-doublet deliverability loss in a multi-doublet array
+
+
+def simulate_scheme(df_tg, well, n_doublets=2, n=10_000, seed=0,
+                    rho=DOUBLET_FLOW_CORRELATION, interference=INTERFERENCE_DERATE,
+                    temp_sigma_c=TEMP_SIGMA_C, q_max_m3h=MAX_SUSTAINABLE_FLOW_M3H) -> pd.DataFrame:
+    """Scheme MWth with *jointly* uncertain, *correlated* doublets — the honest headline.
+
+    Three things the single-variable ``simulate_well`` x n_doublets shorthand misses:
+
+    - **Doublet correlation.** The wells share one reservoir/fairway but drain
+      different rock, so their flows are partially — not perfectly — correlated. Each
+      doublet's flow factor is sqrt(rho)*Z_shared + sqrt(1-rho)*Z_well. Perfect
+      correlation (the old 2x-one-draw shorthand) overstates the spread; independence
+      understates it. rho splits the difference.
+    - **Temperature uncertainty.** ThermoGIS publishes T as a point, so we carry a
+      modest gradient/BHT 1-sigma (``temp_sigma_c``), shared across doublets (one
+      reservoir), feeding dT = T - T_inj.
+    - **Well interference.** Producers in a multi-doublet array compete for pressure
+      support, so each delivers less than a standalone doublet; ``interference``
+      derates the per-doublet flow when n_doublets > 1.
+    """
+    fr = thermogis_property(df_tg, well, "Flow Rate")
+    t = thermogis_property(df_tg, well, "Temperature")
+    rng = np.random.default_rng(seed)
+
+    if max(fr["p90"], fr["p50"], fr["p10"]) <= 0.0:
+        scheme = np.zeros(n)
+        dt = np.full(n, max(t["p50"] - INJECTION_TEMP_C, 0.0))
+    else:
+        mu, sigma_lo, sigma_hi = fit_split_lognormal(fr["p90"], fr["p50"], fr["p10"])
+        z_shared = rng.standard_normal(n)
+        t_res = t["p50"] + temp_sigma_c * rng.standard_normal(n)
+        dt = np.maximum(t_res - INJECTION_TEMP_C, 1.0)   # floor: producer stays above injector
+        derate = interference if n_doublets > 1 else 1.0
+        scheme = np.zeros(n)
+        for _ in range(n_doublets):
+            z_d = np.sqrt(rho) * z_shared + np.sqrt(1.0 - rho) * rng.standard_normal(n)
+            flow = _split_lognormal_from_z(mu, sigma_lo, sigma_hi, z_d)
+            if q_max_m3h is not None:
+                flow = np.minimum(flow, q_max_m3h)
+            scheme += thermal_power_mw(flow * derate, dt)
+
+    return pd.DataFrame({
+        "well": well, "draw": np.arange(n), "n_doublets": n_doublets,
+        "rho": rho, "interference": interference, "delta_t_c": dt, "mwth": scheme,
+    })
+
+
+def summarise_scheme(scheme: pd.DataFrame, demand_mwth=10.0) -> dict:
+    """P10/P50/P90 + P(>= demand) for a simulate_scheme frame."""
+    x = scheme["mwth"].to_numpy()
+    return {
+        "well": scheme["well"].iloc[0],
+        "n_doublets": int(scheme["n_doublets"].iloc[0]),
+        "mwth_p90": round(float(np.percentile(x, 10)), 2),
+        "mwth_p50": round(float(np.percentile(x, 50)), 2),
+        "mwth_p10": round(float(np.percentile(x, 90)), 2),
+        "mwth_mean": round(float(x.mean()), 2),
+        f"p_ge_{demand_mwth:g}MWth": round(float((x >= demand_mwth).mean()), 3),
+    }
 
 
 def simulate_well(df_tg, well, n=10_000, drawdown_pa=DRAWDOWN_THERMOGIS_PA,

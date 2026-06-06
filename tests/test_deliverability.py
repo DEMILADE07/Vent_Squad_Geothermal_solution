@@ -92,6 +92,45 @@ def test_mc_blt_p50_is_about_5MWth_single_doublet():
     assert s2["mwth_p50"] >= 9.5
 
 
+def test_scheme_matches_shorthand_at_perfect_correlation():
+    """Consistency: with perfect doublet correlation, no interference and no T
+    uncertainty, the joint scheme MC reduces to the old 2x-single-doublet shorthand."""
+    from src.montecarlo import simulate_scheme, summarise_scheme
+    mc = simulate_all(n=20_000, anchor="flow")
+    shorthand = summarise(mc[mc["well"] == "BLT-01"], 10.0, n_doublets=2).iloc[0]
+    sc = simulate_scheme(load_thermogis(), "BLT-01", n_doublets=2, n=20_000,
+                         rho=1.0, interference=1.0, temp_sigma_c=0.0)
+    joint = summarise_scheme(sc, 10.0)
+    assert abs(joint["mwth_p50"] - shorthand["mwth_p50"]) / shorthand["mwth_p50"] < 0.03
+
+
+def test_interference_lowers_median_deliverability():
+    from src.montecarlo import simulate_scheme, summarise_scheme
+    df = load_thermogis()
+    full = summarise_scheme(simulate_scheme(df, "BLT-01", 2, n=20_000, interference=1.0), 10.0)
+    derated = summarise_scheme(simulate_scheme(df, "BLT-01", 2, n=20_000, interference=0.85), 10.0)
+    assert derated["mwth_p50"] < full["mwth_p50"]
+
+
+def test_imperfect_correlation_improves_the_downside():
+    """Diversification: imperfectly-correlated doublets are less likely to BOTH be
+    poor, so the P90 (downside) deliverability is higher than at perfect correlation."""
+    from src.montecarlo import simulate_scheme, summarise_scheme
+    df = load_thermogis()
+    corr = summarise_scheme(simulate_scheme(df, "BLT-01", 2, n=30_000, rho=1.0, interference=1.0), 10.0)
+    indep = summarise_scheme(simulate_scheme(df, "BLT-01", 2, n=30_000, rho=0.0, interference=1.0), 10.0)
+    assert indep["mwth_p90"] > corr["mwth_p90"]      # higher P90 = better downside
+
+
+def test_scheme_headline_pge10_is_near_coinflip():
+    """The refined joint model (correlation + interference + T) keeps the two-doublet
+    P(>=10 MWth) near the honest 50 % coin-flip — robust, not massaged."""
+    from src.montecarlo import simulate_scheme, summarise_scheme
+    sc = simulate_scheme(load_thermogis(), "BLT-01", n_doublets=2, n=30_000)
+    r = summarise_scheme(sc, 10.0)
+    assert 0.42 < r["p_ge_10MWth"] < 0.58
+
+
 def test_mc_uneconomic_wells_are_zero():
     """EVD-01 and PKP-01 carry ThermoGIS Flow = 0 -> ~0 MWth."""
     mc = simulate_all(n=2_000, anchor="flow")

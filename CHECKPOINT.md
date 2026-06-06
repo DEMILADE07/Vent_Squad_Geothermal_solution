@@ -26,12 +26,19 @@
    upper tail is resource downside (not cost), the quantified case for staged
    appraisal. Wired into `pipeline.py lcoe` (writes `lcoe_mc_summary.csv`,
    `lcoe_mc_by_hurdle.csv`, `figures/lcoe_*_distribution.png`).
-5. Docs updated (README, technical report §3.4/§5/§6). Tests: **64 pass** (+12 this
-   branch); TNO `5.769049` gate green throughout.
+5. **8760-h dispatch sim** (`src/dispatch.py`, new). Hourly Utrecht temperature year
+   → temperature-driven heat (+DHW) and cooling demand → merit-order dispatch
+   (geothermal → heat pump → backup; ATES → chiller). **Derives** the load-hours
+   instead of assuming them. Key finding: peak-sized geothermal FLEQ ~3,100 h (→ heat
+   LCOE ~21 €/GJ), but **baseloading ~1 doublet (~5 MWth) reaches ~5,800 FLEQ at 92 %
+   coverage** with the heat pump covering peak — the ~6,000 h assumption holds only
+   under baseload operation. ATES 4-pair sizing validated by the 5 MWth peak. Wired
+   into `pipeline.py dispatch`.
+6. Docs updated (README, technical report §3.4/§4.1/§5/§6). Tests: **70 pass** (+18
+   this branch); TNO `5.769049` gate green throughout.
 
-**Next (planned):** 8760-hr hourly dispatch sim (derive load-hours / ATES sizing /
-peak electricity instead of assuming them) and the SDE++ subsidy + value case
-(NPV/IRR at a heat tariff, €/tCO₂ abated).
+**Next (planned):** SDE++ subsidy + value case (NPV/IRR at a heat tariff, €/tCO₂
+abated, gas displaced) — turn the cost number into a Dutch investment decision.
 
 ---
 

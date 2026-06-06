@@ -22,6 +22,8 @@ LCOE_ORIGINAL = ROOT / "LCOE.xlsx"
 LCOE_HYBRID = DATA_PROCESSED / "LCOE_hybrid.xlsx"
 LCOE_MC_SUMMARY_CSV = DATA_PROCESSED / "lcoe_mc_summary.csv"
 LCOE_MC_HURDLE_CSV = DATA_PROCESSED / "lcoe_mc_by_hurdle.csv"
+DISPATCH_SUMMARY_CSV = DATA_PROCESSED / "dispatch_summary.csv"
+DISPATCH_SIZING_CSV = DATA_PROCESSED / "dispatch_sizing.csv"
 
 WELL_LOGS_PARQUET = DATA_PROCESSED / "well_logs.parquet"
 ROTLIEGEND_SUMMARY_CSV = DATA_PROCESSED / "rotliegend_summary.csv"

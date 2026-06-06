@@ -237,12 +237,46 @@ curves — and I prove that with an honest R², rather than trusting an in-sampl
 
 ## 4. Surface design (Challenge 2)
 
-### 4.1 Demand-side characterisation
+### 4.1 Demand-side characterisation — an 8760-hour dispatch, not an assumption
 
-Heating is winter-baseload (I assume ~6,000 full-load equivalent hours); cooling is
-summer-peaky (~2,000 FLEQ hours), so cooling is sized off the **August peak**, not
-the annual mean. The load-duration shape is what makes seasonal storage (ATES)
-attractive: cold banked cheaply in winter is spent against the summer peak.
+The load-hours that the LCOE hinges on (heat FLEQ is the #2 tornado driver) are too
+important to type in, so I **simulate them** (`src/dispatch.py`). I build an hourly
+Utrecht temperature year (seasonal + diurnal + AR(1) weather, winter low −10 °C,
+summer high 29 °C), drive a temperature-dependent space-heating + flat DHW demand
+(peak 10 MWth) and an internal-gain-driven cooling demand (peak 5 MWth), and
+dispatch the supply stack hour by hour: geothermal baseload → heat pump → backup for
+heat; ATES → chiller trim for cold.
+
+Two findings fall straight out, and one of them is uncomfortable:
+
+1. **The 6,000 h heat FLEQ is only achievable under *baseload* operation.** A
+   geothermal scheme sized to the full 10 MWth peak is idle most of the year:
+   simulated FLEQ is just **~3,100 h**, which would re-price heat at **~21 €/GJ**, not
+   11.7. Utilisation is the whole game — and it is recovered by sizing geothermal
+   *down* to baseload:
+
+   | Geo capacity | Heat-energy coverage | Geo FLEQ | Peak shifted to HP |
+   |--------------|----------------------|----------|--------------------|
+   | 10.1 MWth (2 doublets, peak-sized) | 100 % | ~3,100 h | 0 |
+   | 5.05 MWth (1 doublet, baseload) | **92 %** | **~5,800 h** | 1.2 MWe |
+
+   **The economic recommendation the sim forces:** baseload ~one doublet (~5 MWth) and
+   let an electric heat pump cover the residual winter peak. That reaches the ~6,000 h
+   the economics need and still covers 92 % of annual heat energy. Meeting the full
+   10 MWth peak *from geothermal alone* (two doublets) buys supply security and a
+   low-carbon peak, but at roughly half the utilisation — a trade I now state in the
+   open rather than hide inside a load-hours constant. (Figure:
+   `figures/dispatch_load_duration.png`.)
+
+2. **ATES is correctly sized at 4 pairs, and cooling is genuinely small.** The 5 MWth
+   cooling peak needs ⌈5 / 1.5⌉ = **4 ATES pairs** — the sim confirms the costing
+   assumption — but Utrecht's modest cooling load means a simulated cooling FLEQ of
+   only ~640 h (the assumed 2,000 h was generous). ATES alone covers ~all of it, so
+   the electric chiller barely runs. Because cooling is a small, low-LCOE-impact slice
+   (the tornado already showed this), the over-estimate does not move the headline.
+
+The load-duration shape is also what makes seasonal storage (ATES) attractive: cold
+banked cheaply in winter is spent against the summer peak.
 
 ### 4.2 Design A — geothermal + ATES + heat pumps (recommended)
 
@@ -445,5 +479,5 @@ transient thermal-breakthrough simulation at the chosen spacing.
   `figures/ml_dtc_crossplot.png`, `figures/ml_nphi_prediction.png`,
   `data/processed/ml_loo_cv.csv`, `notebooks/05_ml_logs.ipynb`.
 
-*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (64 tests)
+*Reproduce every figure and table: `.venv\Scripts\python.exe -m pytest` (70 tests)
 then `.venv\Scripts\python.exe -m src.pipeline all`.*

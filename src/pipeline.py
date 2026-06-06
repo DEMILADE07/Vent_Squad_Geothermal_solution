@@ -8,6 +8,7 @@ consumes:
     python -m src.pipeline ingest     # raw LAS  -> well_logs.parquet (+ targets)
     python -m src.pipeline petro      #           -> rotliegend_summary.csv (+ deliverability)
     python -m src.pipeline predict    #           -> mc_mwth.parquet (Monte-Carlo MWth)
+    python -m src.pipeline dispatch   #           -> dispatch_summary.csv (8760-h load-hours)
     python -m src.pipeline ml         #           -> ml_loo_cv.csv + ml_log_predictions.parquet
     python -m src.pipeline lcoe       #           -> LCOE_hybrid.xlsx + lcoe_mc_summary.csv (P10/P50/P90)
     python -m src.pipeline all        # run every stage in order
@@ -32,6 +33,8 @@ from src.lithostrat import rotliegend_pick
 from src.montecarlo import simulate_all, summarise
 from src.paths import (
     DATA_PROCESSED,
+    DISPATCH_SIZING_CSV,
+    DISPATCH_SUMMARY_CSV,
     FIGURES,
     LCOE_HYBRID,
     LCOE_MC_HURDLE_CSV,
@@ -146,6 +149,32 @@ def stage_ml() -> dict:
     return {"cv": ML_LOO_CV_CSV, "predictions": ML_PREDICTIONS_PARQUET}
 
 
+def stage_dispatch() -> dict:
+    """8760-h hourly dispatch -> derived load-hours, ATES sizing, baseload trade."""
+    _ensure_out()
+    from src.dispatch import (
+        lcoe_at_simulated_loadhours,
+        plot_dispatch,
+        simulate_dispatch,
+        sizing_table,
+    )
+
+    summary = simulate_dispatch()
+    sizing = sizing_table(capacities=(5.05, 6.0, 7.5, 8.5, 10.12))
+    lc = lcoe_at_simulated_loadhours()
+    pd.DataFrame([{**summary, **lc}]).to_csv(DISPATCH_SUMMARY_CSV, index=False)
+    sizing.to_csv(DISPATCH_SIZING_CSV, index=False)
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    plot_dispatch(save_path=FIGURES / "dispatch_load_duration.png")
+    _df_table(sizing, "Geothermal baseload sizing trade (FLEQ rises toward baseload)")
+    console.print(f"[green]wrote[/] {DISPATCH_SUMMARY_CSV.name}, {DISPATCH_SIZING_CSV.name}, "
+                  "dispatch_load_duration.png")
+    console.print(f"[dim]Simulated geo FLEQ {lc['fleq_simulated_h']:.0f} h (peak-sized) vs "
+                  f"assumed {lc['fleq_assumed_h']:.0f} h -> heat LCOE "
+                  f"{lc['lcoe_heat_simulated']} vs {lc['lcoe_heat_assumed']} EUR/GJ.[/]")
+    return {"dispatch": DISPATCH_SUMMARY_CSV, "sizing": DISPATCH_SIZING_CSV}
+
+
 def stage_lcoe(draws: int = 10_000) -> dict:
     """Resource + design -> hybrid LCOE workbook + probabilistic LCOE distribution.
 
@@ -213,6 +242,13 @@ def ml() -> None:
 
 
 @app.command()
+def dispatch() -> None:
+    """8760-h dispatch: derive heat/cool load-hours, ATES sizing, baseload trade."""
+    _rule("dispatch (8760-h hourly)")
+    stage_dispatch()
+
+
+@app.command()
 def lcoe(draws: int = typer.Option(10_000, help="Probabilistic-LCOE Monte-Carlo draws")) -> None:
     """Hybrid LCOE workbook + probabilistic LCOE (P10/P50/P90, CDF, hurdle scenarios)."""
     _rule("lcoe")
@@ -226,6 +262,7 @@ def all(draws: int = typer.Option(10_000, help="Monte-Carlo draws per well")) ->
     stage_ingest()
     stage_petro()
     stage_predict(n=draws)
+    stage_dispatch()
     stage_ml()
     stage_lcoe(draws=draws)
     console.print("\n[bold green]Pipeline complete.[/] All artefacts in "

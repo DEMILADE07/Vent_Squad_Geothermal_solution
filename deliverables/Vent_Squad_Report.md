@@ -20,47 +20,47 @@ code (`src/`), unit-tested, and reproducible end-to-end from a fresh clone via
 
 ## Executive summary
 
-I was asked a deceptively simple question: can a Rotliegend geothermal scheme
+We were asked a deceptively simple question: can a Rotliegend geothermal scheme
 supply an Utrecht-region district with **≥ 10 MWth of heating and ≥ 5 MWth of
-cooling**, and what does it cost? My answer is **yes — but it takes two doublets,
+cooling**, and what does it cost? Our answer is **yes — but it takes two doublets,
 not one, and that fact drives the entire economics.**
 
 The four candidate wells are not equal. BLT-01 is the clear anchor: 130 m of net
-Rotliegend at 17 % porosity, 82 mD, 9.3 Dm transmissivity and 77 °C. My own
+Rotliegend at 17 % porosity, 82 mD, 9.3 Dm transmissivity and 77 °C. Our own
 petrophysics, computed independently from the logs, confirms it — net-to-gross
 **0.93** at 15 % net porosity, the best of the four by a wide margin. The other
 three are progressively weaker, and two of them (EVD-01, PKP-01) are judged
-non-productive by ThermoGIS and by my own Darcy model.
+non-productive by ThermoGIS and by our own Darcy model.
 
 The headline tension is this: the Dutch industry benchmark gets ~13 MWth from a
 *single* doublet because its reference reservoir is hotter (~94 °C) and more
 permeable. **Our 77 °C reservoir yields only ~5 MWth per doublet** (Monte-Carlo
 P50 **5.05 MWth**, with only a 29 % chance of clearing 10 MWth alone). To meet the
-heating demand I therefore size a **two-doublet (four-well) scheme**. Modelling the
+heating demand we therefore size a **two-doublet (four-well) scheme**. Modelling the
 two doublets as *independent* reservoir realisations — two separate well pairs in
 the same fairway sample the resource independently — and bounding each draw at a
 300 m³/h pump/sand-control ceiling so the optimistic tail stays physical, the
 scheme reaches a P50 of **13.2 MWth** with a **62 % probability of clearing
-10 MWth**. That is comfortably resource-adequate with headroom, not a number I have
+10 MWth**. That is comfortably resource-adequate with headroom, not a number we have
 massaged: the single doublet still falls well short, so two doublets remain the
 honest minimum.
 
-For the surface system I recommend **Design A: geothermal doublets → plate heat
+For the surface system we recommend **Design A: geothermal doublets → plate heat
 exchangers → district hot loop, with cooling from seasonal ATES (aquifer thermal
 energy storage) trimmed by electric heat pumps.** It wins on three counts, in order
 of strength: it does **not** divert ~7 MWth of saleable heat to make cold (Design B
 does); a LiBr/H₂O absorption chiller wants 85–95 °C drive heat, above our 77 °C
 resource; and even after sizing ATES robustly to clear the cooling demand at the
 low-throughput end, its cooling LCOE (**23.0 €/GJ**) is on par with — marginally
-below — the absorption route (**23.4 €/GJ**). I do not claim a large cost win on
+below — the absorption route (**23.4 €/GJ**). We do not claim a large cost win on
 cooling; the case for Design A is that it keeps the heat we are in business to sell
 and works at our actual reservoir temperature.
 
-The economics are benchmarked and honest. My LCOE engine reproduces the TNO
-reference workbook to **5.769 €/GJ** before I trust any of my own numbers. On that
+The economics are benchmarked and honest. Our LCOE engine reproduces the TNO
+reference workbook to **5.769 €/GJ** before we trust any of our own numbers. On that
 footing, the hybrid scheme delivers **heat at 11.8 €/GJ, cooling at 23.0 €/GJ, a
 blended 13.4 €/GJ**, for **≈ €21.3 M** of capital. That heat price is ~2× the Dutch
-heat-only benchmark, and I can attribute the gap precisely: a cooler, less
+heat-only benchmark, and we can attribute the gap precisely: a cooler, less
 productive reservoir needs four wells for 10 MWth where the benchmark needs two for
 13 MWth.
 
@@ -93,7 +93,7 @@ simulation. These are the right next-phase activities, not feasibility-stage one
 
 ## 2. Data inventory and quality
 
-| Source | What it is | How I used it |
+| Source | What it is | How we used it |
 |--------|-----------|---------------|
 | 4 LAS files (BLT-01, EVD-01, JUT-01, PKP-01) | Wireline logs (GR, sonic, density, ±neutron) | Petrophysics, ML log prediction |
 | Lithostratigraphic Data.xlsx | Formation tops, fault flags | Rotliegend/Slochteren interval picks |
@@ -102,7 +102,7 @@ simulation. These are the right next-phase activities, not feasibility-stage one
 | target_lithologies.csv | 3,455 reservoir-property samples | Recovered (see below) |
 | LCOE.xlsx | TNO heat-only LCOE workbook | Validation reference; rebuilt in code |
 
-**Quality issues I handled in code (not by hand):**
+**Quality issues we handled in code (not by hand):**
 
 1. **`-999.25` nulls** masked to NaN on load before any arithmetic.
 2. **JUT-01 depths in feet** — converted once to metres by an *idempotent* function
@@ -113,7 +113,7 @@ simulation. These are the right next-phase activities, not feasibility-stage one
    ascending so depth-ordered operations are valid.
 5. **`target_lithologies.csv` shipped broken on purpose:** every row flagged
    "needs TVD conversion" with the TVD column empty; its `formation_top/base` were
-   actually along-hole **MD** (feet for JUT-01). I reverse-engineered the structure,
+   actually along-hole **MD** (feet for JUT-01). We reverse-engineered the structure,
    matched each row to its exact LAS sample by GR, recovered the TVD, and cleared
    the flag (`src/targets.py`). Cross-check against the lithostratigraphic tops
    agrees to **0.0 m** for BLT-01/EVD-01/PKP-01; JUT-01 is flagged (see §3.1).
@@ -131,11 +131,11 @@ cost, and ATES capex ranges. The full input-to-source mapping is in Appendix D.
 
 All depth referencing is **true vertical depth (TVD)** via the **minimum-curvature**
 method (`src/mdtvd.py`), the industry standard for tracing a deviated well path.
-My recomputed station TVD matches the survey's own TVD column to **better than
+Our recomputed station TVD matches the survey's own TVD column to **better than
 1 cm** on all four wells. PKP-01 is the most deviated (~37°); EVD-01 has only 22
 survey stations and falls back to a piecewise-linear path with a logged warning.
 
-JUT-01 is the problem child and I treat it explicitly: its target rows trace to a
+JUT-01 is the problem child and we treat it explicitly: its target rows trace to a
 spurious ~506 m depth (a 1659.5 *ft* → metre error in the source file), while its
 true Slochteren sits at ~3161 m TVD below the Zechstein, with a reverse fault at
 ~2555 m repeating section. **JUT-01 target rows are excluded from reservoir
@@ -154,30 +154,30 @@ aggregation and flagged for manual review** rather than silently averaged in.
 
 ### 3.3 Rotliegend characterisation per well
 
-My independent net-reservoir summary (`data/processed/rotliegend_summary.csv`),
+Our independent net-reservoir summary (`data/processed/rotliegend_summary.csv`),
 set beside the ThermoGIS expert estimate:
 
-| Well | Gross (m) | Net (m) | **My NTG** | φ_net | ThermoGIS NTG | ThermoGIS φ / k / kh / T |
+| Well | Gross (m) | Net (m) | **Our NTG** | φ_net | ThermoGIS NTG | ThermoGIS φ / k / kh / T |
 |------|-----------|---------|------------|-------|---------------|--------------------------|
 | **BLT-01** | 122.4 | 113.8 | **0.93** | **0.150** | 0.98 | 17 % / 82 mD / 9.3 Dm / 77 °C |
 | EVD-01 | 76.8 | 42.1 | 0.55 | 0.109 | 0.99 | 9 % / 6 mD / 0.4 Dm / 72 °C |
 | JUT-01 | 133.0 | 42.3 | 0.32 | 0.099 | 0.99 | 11 % / 40 mD / 4.8 Dm / 72 °C |
 | PKP-01 | 64.4 | 6.6 | 0.10 | 0.091 | 0.95 | 9 % / 1 mD / 0.1 Dm / 88 °C |
 
-**A deliberate disagreement on NTG, declared not hidden.** At the anchor well my
+**A deliberate disagreement on NTG, declared not hidden.** At the anchor well our
 log-based net-to-gross (**0.93**) closely matches the ThermoGIS regional figure
-(0.98), which is what gives me confidence in the BLT-01 numbers I build the design
-on. At the three weaker wells my NTG is markedly *lower* than ThermoGIS's
+(0.98), which is what gives us confidence in the BLT-01 numbers we build the design
+on. At the three weaker wells our NTG is markedly *lower* than ThermoGIS's
 0.95–0.99. That is not an error: ThermoGIS publishes a play-average net-to-gross,
-whereas I apply explicit sample-by-sample cut-offs (**V_sh ≤ 0.40 AND φ ≥ 0.08**) to
+whereas we apply explicit sample-by-sample cut-offs (**V_sh ≤ 0.40 AND φ ≥ 0.08**) to
 the actual logs, which strips the shalier, tighter intervals that a regional average
 smooths over — PKP-01's 0.10, for instance, reflects log character consistent with
-its ThermoGIS permeability of just 1 mD. I trust the well-specific logs over the
-play-average where they disagree, which makes my estimate the **more conservative**
-of the two. Crucially, this does not distort Challenge 1: my resource MWth is
-anchored on ThermoGIS's *own* published flow-rate distribution (§3.4), not on my
+its ThermoGIS permeability of just 1 mD. We trust the well-specific logs over the
+play-average where they disagree, which makes our estimate the **more conservative**
+of the two. Crucially, this does not distort Challenge 1: our resource MWth is
+anchored on ThermoGIS's *own* published flow-rate distribution (§3.4), not on our
 NTG, so the disagreement changes none of the deliverability numbers — it only makes
-my characterisation of the non-anchor wells stricter. (See *Appendix B* for the
+our characterisation of the non-anchor wells stricter. (See *Appendix B* for the
 BLT-01 petrophysical track and MD→TVD QC plots.)
 
 ### 3.4 Resource calculation
@@ -196,18 +196,18 @@ that back-solves from their numbers:
 | BLT-01 | 104.2 m³/h | 105.0 m³/h | 5.08 MWth | 5.1 MWth |
 | JUT-01 | 53.8 m³/h | 55.0 m³/h | 2.31 MWth | 2.3 MWth |
 
-Matching the national database to ~1 % earns me the right to use the model for
+Matching the national database to ~1 % earns us the right to use the model for
 what-if scenarios.
 
-**Probabilistic MWth** (`src/montecarlo.py`). I fit a **split (two-piece) lognormal**
+**Probabilistic MWth** (`src/montecarlo.py`). We fit a **split (two-piece) lognormal**
 to the ThermoGIS flow P90/P50/P10 band so the sampled distribution reproduces all
 three published points *exactly* — a single-sigma fit overshoots BLT-01's published
-flow P10 (≈551 vs 469 m³/h) and inflates the optimistic resource. I then **cap each
+flow P10 (≈551 vs 469 m³/h) and inflates the optimistic resource. We then **cap each
 draw at a 300 m³/h pump/sand-control ceiling** (NL Rotliegend doublets run
 ~100–300 m³/h; the surface choke, not the reservoir, sets the limit), which de-rates
 only the unphysical upper tail and leaves the P50 untouched. A *k*-doublet scheme is
 the **sum of *k* independent** single-doublet realisations — two well pairs sample
-the play independently, so I do not collapse them to one shared realisation
+the play independently, so we do not collapse them to one shared realisation
 (rescaling a single draw by *k* would impose perfect correlation and force
 P(2× ≥ 10) = P(× ≥ 5), understating the genuine two-site result):
 
@@ -224,21 +224,21 @@ for the unbounded model's implausible 27 MWth tail; no 77 °C doublet outproduce
 are non-productive and are not candidate doublet sites. (Distribution chart:
 `figures/mc_mwth_blt.png`.)
 
-**Independence is a labelled assumption, and I bracket it.** Two doublets 1.3 km apart
+**Independence is a labelled assumption, and we bracket it.** Two doublets 1.3 km apart
 share the regional geology (positive correlation) but sample local heterogeneity
-separately (independence), so the truth lies between two bounds I can both compute:
+separately (independence), so the truth lies between two bounds we can both compute:
 the **fully-correlated** case (one shared draw, the most conservative) gives a
 two-doublet P50 of **≈ 10.1 MWth with P(≥10) ≈ 50 %**, while the **independent** case
-(my central estimate) gives **13.2 MWth / 62 %**. The design decision is robust across
+(our central estimate) gives **13.2 MWth / 62 %**. The design decision is robust across
 the whole range — the scheme clears 10 MWth at P50 *either way* — so the
-correlation assumption changes the comfort margin, not the conclusion. I report the
+correlation assumption changes the comfort margin, not the conclusion. We report the
 independent case as the headline and the correlated case as the conservative floor.
 
 **The conclusion the data forces:** one doublet does not meet the heating demand
 (only 29 % likely). **Two doublets are the honest minimum** — they lift the P50 to
 13.2 MWth and the probability of clearing 10 MWth to 62 %, better than even with
 real headroom above the demand — and everything downstream assumes the four-well
-scheme. I size the surface plant and LCOE to the 10 MWth *delivered* demand, not to
+scheme. We size the surface plant and LCOE to the 10 MWth *delivered* demand, not to
 the 13.2 MWth resource P50, so the resource surplus de-risks delivery rather than
 inflating the economics.
 
@@ -266,8 +266,8 @@ a near-term design constraint at spacings well below 1 km.
 
 See §7 for the leave-one-well-out result. The short version: cross-well log
 prediction is **not** reliable enough on these four distinct wells to feed the
-resource calc, so I fall back to ThermoGIS deterministic values for the missing
-curves — and I prove that with an honest R², rather than trusting an in-sample fit.
+resource calc, so we fall back to ThermoGIS deterministic values for the missing
+curves — and we prove that with an honest R², rather than trusting an in-sample fit.
 
 ---
 
@@ -281,7 +281,7 @@ storage (ATES) attractive: cold banked cheaply in winter is spent against the su
 peak.
 
 **Load-hours derived, not assumed** (`src/dispatch.py`). Rather than typing in the
-6,000 FLEQ hours the LCOE leans on, I build an **8,760-hour** demand year from a
+6,000 FLEQ hours the LCOE leans on, we build an **8,760-hour** demand year from a
 synthetic-but-realistic Utrecht temperature profile (space heat + DHW baseload;
 temperature-driven cooling) and dispatch the supply stack against it (geothermal →
 heat-pump trim → backup; ATES → chiller). The result is a sharp, defensible finding:
@@ -303,7 +303,7 @@ in summer, with an electric heat pump in chiller mode trimming the hottest days.
 
 **ATES is sized probabilistically, not to a comfortable midpoint.** A single
 warm/cold pair delivers an uncertain 0.5–2.0 MWth of cooling (Fleuchaus et al.,
-2018; Bloemendal & Hartog, 2018), so I treat the per-pair throughput as a triangular
+2018; Bloemendal & Hartog, 2018), so we treat the per-pair throughput as a triangular
 distribution (mode 1.0 MWth) and size the pair count off the *low* end. At
 **6 pairs** the Monte-Carlo probability of meeting the 5 MWth demand is **99.8 %**,
 and even the conservative P90 supply (6.0 MWth) clears it — whereas the 4 pairs a
@@ -317,13 +317,13 @@ schematic is in `figures/design_a_schematic.png`.
 
 Same heat source, but cooling from a LiBr/H₂O **absorption chiller** (thermal
 COP ≈ 0.7) driven by geothermal heat. To make 5 MWth of cold it needs **≈ 7.1 MWth
-of driving heat** — heat that Design A instead sells. I price that driving heat at
+of driving heat** — heat that Design A instead sells. We price that driving heat at
 the heat LCOE as an internal transfer cost, which is the fair way to expose the
 trade-off.
 
 ### 4.4 Recommendation and selection rationale
 
-**Design A wins, and I made sure it won honestly:**
+**Design A wins, and we made sure it won honestly:**
 
 | | Design A (ATES + HP) | Design B (absorption) |
 |---|---|---|
@@ -338,7 +338,7 @@ trade-off.
    chiller wants 85–95 °C drive heat (ASHRAE); our reservoir is 77 °C,
    marginal-to-insufficient. 3. **Cost** — once ATES is sized *robustly* (6 pairs,
    §4.2) rather than to an optimistic midpoint, Design A's cooling LCOE is on par
-   with Design B, marginally below it. I deliberately do **not** lean the
+   with Design B, marginally below it. We deliberately do **not** lean the
    recommendation on a large cost advantage that the honest sizing does not support;
    Design A wins on keeping the heat and on the thermodynamics, with cost a wash.
    Design B is lower-capex but loses on both.
@@ -354,9 +354,9 @@ total-energy — the 80/20 debt/equity split, loan interest, depreciation, tax a
 discounting all set the number.
 
 **Method and validation.** Rather than edit the TNO workbook (the single source of
-truth, left untouched), I rebuilt its financial model in Python (`src/lcoe.py`) so
+truth, left untouched), we rebuilt its financial model in Python (`src/lcoe.py`) so
 sensitivities and the bonus pipeline can drive it. The rebuild is **gated**: it must
-reproduce the stock workbook's heat case to **5.769 €/GJ** before any of my numbers
+reproduce the stock workbook's heat case to **5.769 €/GJ** before any of our numbers
 are trusted. It does, to the third decimal, and a unit test locks it.
 
 **Results (Design A):**
@@ -387,7 +387,7 @@ for 13 MWth. That clean cause-and-effect is the spine of the report.
 **Reconciling the load factor — the honest caveat behind 11.8 €/GJ.** This number is
 priced at **6,000 full-load-equivalent (FLEQ) hours** — the utilisation that
 direct-use geothermal *needs* to be economic, and that NL schemes routinely reach by
-baseloading high-load-factor heat customers. My own 8,760-hour dispatch (§4.1) is
+baseloading high-load-factor heat customers. Our own 8,760-hour dispatch (§4.1) is
 deliberately explicit about the consequence: a doublet *peak-sized to this district's
 comfort heat demand and run comfort-only* sees just **~3,170 FLEQ → ~21 €/GJ**,
 because space-heat demand is peaky. That is exactly why the design runs the
@@ -400,13 +400,13 @@ the same physics seen two ways, and load factor is the single largest heat-LCOE 
 in the tornado. **Cooling carries the identical caveat:** at the 2,000 served-hours
 typical when geothermal-assisted cooling also serves process or longer-season loads
 it is **23.0 €/GJ**, but at the **~640 comfort-only hours** the dispatch derives for
-this district the same plant prices at **~63 €/GJ**. I therefore lead on the
+this district the same plant prices at **~63 €/GJ**. We therefore lead on the
 **blended** system LCOE (13.4 €/GJ), which is robust to both because heat is
 ~86–95 % of delivered energy, and treat load factor as a headline sensitivity rather
 than a settled input.
 
 **The LCOE is a *distribution*, not a point** (`src/lcoe_montecarlo.py`). The
-headline number's dominant input is the resource — itself a probability — so I
+headline number's dominant input is the resource — itself a probability — so we
 propagate the bounded resource Monte-Carlo *and* the cost/market uncertainty
 (drilling cost, load-hours, electricity price, ATES capex/COP — triangular ranges
 anchored to the tornado swing points) through the financed model. The heat LCOE
@@ -425,7 +425,7 @@ a financing choice, not a geological draw.
 **Asset life.** The TNO reference depreciates and prices over the 15-year loan, but a
 geothermal doublet delivers heat well beyond it. Running the same scheme to a 30-year
 economic life (loan unchanged) lowers the heat LCOE to **≈ 10.7 €/GJ** — a legitimate
-improvement I flag but do not bank in the headline, which stays on the conservative
+improvement we flag but do not bank in the headline, which stays on the conservative
 15-year basis.
 
 **From cost to fundability — the SDE++ value case** (`src/value_case.py`). LCOE says
@@ -482,7 +482,7 @@ A reviewer can re-run it from a clean `pip install -r requirements.txt`.
 
 **ML missing-log prediction with honest validation** (`src/ml_logs.py`,
 `notebooks/05_ml_logs.ipynb`). Only BLT-01 is fully logged; NPHI is absent on
-EVD-01/JUT-01 and RHOB is sparse on EVD-01. I train LightGBM on donor wells and
+EVD-01/JUT-01 and RHOB is sparse on EVD-01. We train LightGBM on donor wells and
 score it by **leave-one-well-out** cross-validation — the only honest measure of
 generalisation to an unseen well:
 
@@ -495,8 +495,8 @@ generalisation to an unseen well:
 **The locked fallback rule:** where cross-well R² < 0.50, the prediction is *not*
 trusted — the petrophysics uses the ThermoGIS deterministic value instead. With one
 fully-logged well and four geologically distinct locations, log prediction is not
-reliable enough here, and I prove it rather than assume it. The ML layer adds value
-as an automated, validated *screen* — not as a number I quietly trust. Where AI
+reliable enough here, and we prove it rather than assume it. The ML layer adds value
+as an automated, validated *screen* — not as a number we quietly trust. Where AI
 does **not** belong: the dimensioning and design decisions stay engineer-in-the-loop.
 
 ---
@@ -528,12 +528,12 @@ transient thermal-breakthrough simulation at the chosen spacing.
 
 ## 9. Applicability to African geothermal contexts
 
-This is a Dutch case study, but the competition is an African one, so I want to be
+This is a Dutch case study, but the competition is an African one, so we want to be
 explicit about what carries across and what does not — because pretending a 77 °C
 sedimentary Rotliegend doublet is a template for African geothermal would be the
-kind of over-claim I have avoided everywhere else.
+kind of over-claim we have avoided everywhere else.
 
-**The transferable asset is the *method*, not the numbers.** Four things I built
+**The transferable asset is the *method*, not the numbers.** Four things we built
 here are geology-agnostic and would slot directly onto an African project:
 
 1. **The probabilistic resource workflow** — taking a P90/P50/P10 reservoir
@@ -557,7 +557,7 @@ volcanic/magmatic**, concentrated along the **East African Rift** — Kenya
 resources are 200–350 °C and are developed for **electricity**, with flash/binary
 plants and very different well, reservoir-physics and cost models. Our low-enthalpy
 **direct-use** scheme — Darcy-flow sandstone deliverability, ATES seasonal
-cold-banking, a heat-led district loop — is not the right tool there, and I would
+cold-banking, a heat-led district loop — is not the right tool there, and we would
 not pretend otherwise.
 
 **Where the Dutch model genuinely fits in Africa.** The sedimentary, direct-use

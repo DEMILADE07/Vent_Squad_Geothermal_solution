@@ -17,22 +17,22 @@
 
 ## Problem statement
 
-I was asked whether a **Rotliegend (Slochteren sandstone) geothermal scheme** can
+We were asked whether a **Rotliegend (Slochteren sandstone) geothermal scheme** can
 supply a mixed urban district in the **Utrecht region** with **≥ 10 MWth of
-heating and ≥ 5 MWth of cooling**, and what it would cost. I answer it end to end:
-I characterise the resource from four wells, decide whether it meets the demand
+heating and ≥ 5 MWth of cooling**, and what it would cost. We answer it end to end:
+we characterise the resource from four wells, decide whether it meets the demand
 (Challenge 1), design the surface system that delivers both heating and cooling
 (Challenge 2), and re-derive the levelised cost of energy for the hybrid scheme.
 
-## What I conclude (headline)
+## What we conclude (headline)
 
 - **BLT-01 is the anchor well** — the thickest, most porous and most permeable of
-  the four; my own petrophysics, computed independently from the logs, agrees with
+  the four; our own petrophysics, computed independently from the logs, agrees with
   ThermoGIS at the anchor (NTG 0.93 vs 0.98) and is deliberately stricter at the
   weaker wells.
 - The resource is **real but modest at 77 °C**. As a probabilistic distribution
   (split-lognormal fit, optimistic tail bounded at a 300 m³/h pump ceiling), one
-  doublet is **P50 5.05 MWth (29 % chance of clearing 10)**, so I size a
+  doublet is **P50 5.05 MWth (29 % chance of clearing 10)**, so we size a
   **two-doublet (four-well) scheme** — two *independent* doublets reach **P50
   13.2 MWth with a 62 % probability of clearing 10 MWth**. Thermal breakthrough at
   1.3 km spacing is **~177 yr away** (Gringarten-Sauty), so the deliverability holds

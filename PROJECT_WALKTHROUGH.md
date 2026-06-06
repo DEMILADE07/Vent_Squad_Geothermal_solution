@@ -13,7 +13,7 @@ written for you, the evaluator. The report is the formal submission; this docume
 exists so that anyone — including a reviewer without a geothermal background — can
 follow *what* we did, *why*, and *how to check it*, building from the basics. Every
 number here is produced by the code in `src/`, is unit-tested, and reproduces from a
-fresh clone (Part H). Where I use a technical term for the first time it is **bold**
+fresh clone (Part H). Where we use a technical term for the first time it is **bold**
 and defined in the glossary (Part G).
 
 The structure:

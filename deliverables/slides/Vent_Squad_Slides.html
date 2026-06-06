@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vent Squad — Utrecht Geothermal Heating &amp; Cooling</title>
+  <!-- reveal.js from CDN: no build step. Open this file in any browser. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <style>
+    :root{ --vs-navy:#1F4E5F; --vs-blue:#3b7dab; --vs-orange:#c1432b; --vs-gold:#f2c14e; }
+    .reveal { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color:#222; }
+    .reveal h1,.reveal h2,.reveal h3 { color:var(--vs-navy); font-weight:700; text-transform:none; letter-spacing:0; }
+    .reveal h1 { font-size:1.9em; } .reveal h2 { font-size:1.35em; } .reveal h3{ font-size:1.05em; }
+    .reveal section { text-align:left; }
+    .reveal .center { text-align:center; }
+    .reveal ul { display:block; }
+    .reveal li { margin:.18em 0; font-size:.86em; }
+    .reveal strong { color:var(--vs-navy); }
+    .reveal em.k { color:var(--vs-orange); font-style:normal; font-weight:700; }
+    .reveal img { background:#fff; border:1px solid #e2e2e2; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,.08); max-height:62vh; }
+    .reveal table { font-size:.7em; }
+    .reveal table th { background:var(--vs-navy); color:#fff; }
+    .reveal .kpis { display:flex; gap:.6em; justify-content:center; margin:.4em 0; flex-wrap:wrap; }
+    .reveal .kpi { background:#f4f7f9; border-top:4px solid var(--vs-blue); border-radius:6px; padding:.5em .8em; text-align:center; min-width:150px; }
+    .reveal .kpi b { display:block; color:var(--vs-orange); font-size:1.35em; }
+    .reveal .kpi span { font-size:.62em; color:#555; }
+    .reveal .footer { position:fixed; bottom:8px; left:14px; font-size:12px; color:#9aa; }
+    .reveal .two { display:flex; gap:1em; align-items:center; }
+    .reveal .two > div { flex:1; }
+    .reveal .lead { color:var(--vs-orange); font-weight:700; }
+    .reveal section img.full { display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- 1 Title -->
+  <section class="center">
+    <h1>Utrecht District Geothermal<br>Heating &amp; Cooling</h1>
+    <h3>A hybrid doublet feasibility study — Rotliegend sandstone</h3>
+    <p><strong>Team Vent Squad</strong><br>
+    Demilade Kolawole-Jacobs (lead) · Fikayo · Ashinze · Ayomide · Sodiq</p>
+    <p style="font-size:.7em;color:#666">SPE membership numbers: <code>____ / ____ / ____ / ____ / ____</code><br>
+    SPE Africa Geothermal Datathon 2026 · v1</p>
+    <aside class="notes">We're Vent Squad. Our question was simple — can a Rotliegend geothermal
+    scheme heat AND cool an Utrecht district? Our answer is yes, with one honest catch we'll reach in 90 seconds.</aside>
+  </section>
+
+  <!-- 2 Problem -->
+  <section>
+    <h2>The problem, in one slide</h2>
+    <ul>
+      <li>District demand: <em class="k">10 MWth heating</em> (winter) + <em class="k">5 MWth cooling</em> (summer)</li>
+      <li>Reservoir target: <strong>Rotliegend sandstone</strong> (Lower Permian, ~2 km deep)</li>
+      <li>Four wells on the table: <strong>BLT-01, EVD-01, JUT-01, PKP-01</strong></li>
+      <li>Why now: the Netherlands already runs ~20 producing Rotliegend doublets</li>
+    </ul>
+    <aside class="notes">Two halves: 60% subsurface, 40% surface. The precedent is real — we're
+    not inventing a play, we're siting one.</aside>
+  </section>
+
+  <!-- 3 Recommendation -->
+  <section>
+    <h2>Our recommendation — lead with the answer</h2>
+    <ul>
+      <li><strong>Site a 2-doublet (4-well) scheme near BLT-01</strong></li>
+      <li><strong>Design A:</strong> geothermal + ATES + electric heat pumps</li>
+    </ul>
+    <div class="kpis">
+      <div class="kpi"><b>13.2</b><span>MWth heating P50 · P(≥10)=62%</span></div>
+      <div class="kpi"><b>5</b><span>MWth cooling · 99.8% adequacy</span></div>
+      <div class="kpi"><b>13.4</b><span>blended €/GJ</span></div>
+      <div class="kpi"><b>21%</b><span>equity IRR with SDE++</span></div>
+    </div>
+    <p style="font-size:.72em">The honest catch: it's <em class="k">two</em> doublets, not one — and we put a
+    probability on it instead of hiding it.</p>
+    <aside class="notes">Board-memo style: answer first. Two independent doublets clear 10 MWth 62% of
+    the time with headroom; we size the plant to the 10 MWth demand, not the 13 MWth surplus.</aside>
+  </section>
+
+  <!-- 4 Why BLT-01 -->
+  <section>
+    <h2>Why BLT-01: four wells, one sweet spot</h2>
+    <div class="two">
+      <div>
+        <table>
+          <tr><th>Well</th><th>h (m)</th><th>φ %</th><th>k mD</th><th>T °C</th><th>kh Dm</th></tr>
+          <tr><td><strong>BLT-01</strong></td><td>130</td><td>17</td><td>82</td><td>77</td><td>9.3</td></tr>
+          <tr><td>JUT-01</td><td>125</td><td>11</td><td>40</td><td>72</td><td>4.8</td></tr>
+          <tr><td>PKP-01</td><td>60</td><td>9</td><td>1</td><td>88</td><td>0.1</td></tr>
+          <tr><td>EVD-01</td><td>76</td><td>9</td><td>6</td><td>72</td><td>0.4</td></tr>
+        </table>
+        <p style="font-size:.66em">Our NTG agrees at the anchor (0.93 vs ThermoGIS 0.98); we apply
+        stricter log cut-offs at the weaker wells — a declared, conservative disagreement.</p>
+      </div>
+      <div><img class="full" src="../../figures/ntg_vs_thermogis.png" alt="NTG vs ThermoGIS and φ–k"></div>
+    </div>
+    <aside class="notes">BLT-01 dominates on k·h, the make-or-break flow term. PKP hot but tight; EVD weak;
+    JUT structurally complex. One obvious anchor.</aside>
+  </section>
+
+  <!-- 5 Method -->
+  <section>
+    <h2>Subsurface workflow (method, one slide)</h2>
+    <ul>
+      <li>LAS → unit harmonisation (JUT-01 ft→m) → <strong>MD→TVD minimum curvature</strong> (sub-cm match)</li>
+      <li>Petrophysics: <strong>Larionov-older</strong> V<sub>sh</sub> · density-φ (ρ<sub>ma</sub> 2.65) · NPHI cross-check</li>
+      <li>Net cut-off: <strong>V<sub>sh</sub> ≤ 0.40 AND φ ≥ 0.08</strong></li>
+      <li>We recovered the deliberately-broken target file in code; honest leave-one-well-out ML validation</li>
+    </ul>
+    <p class="center"><img src="../../figures/md_vs_tvd.png" alt="MD vs TVD" style="max-height:42vh"></p>
+    <aside class="notes">One slide of method to earn credibility. Emphasise sub-cm TVD match and the recovered target file.</aside>
+  </section>
+
+  <!-- 6 Resource MC -->
+  <section>
+    <h2>Resource: probabilistic MWth — the verdict</h2>
+    <div class="two">
+      <div>
+        <ul>
+          <li>Split-lognormal fit (hits all 3 points), tail <strong>bounded at a 300 m³/h pump ceiling</strong></li>
+          <li>1 doublet: P50 <strong>5.05 MWth</strong>, only <strong>29%</strong> chance of 10 MWth</li>
+          <li><em class="k">2 independent doublets: P50 13.2 MWth, 62%</em> → design basis</li>
+          <li>Reconciled to ThermoGIS ~1%; thermal breakthrough <strong>~177 yr ≫ life</strong></li>
+        </ul>
+        <p style="font-size:.64em">Independent doublets (not one draw doubled) and a physical pump cap —
+        no 77 °C doublet beats the ~13 MWth Dutch benchmark. Honest, not massaged.</p>
+      </div>
+      <div><img class="full" src="../../figures/mc_mwth_blt.png" alt="Monte-Carlo MWth"></div>
+    </div>
+    <aside class="notes">Our differentiator: a distribution, not a point. Independence + a physical pump cap
+    are both correct and honest — 62% chance of clearing 10 MWth with headroom, while one doublet falls short.</aside>
+  </section>
+
+  <!-- 7 Design A -->
+  <section>
+    <h2>Design A — geothermal + ATES + heat pumps</h2>
+    <p class="center"><img class="full" src="../../figures/design_a_schematic.png" alt="Design A schematic" style="max-height:52vh"></p>
+    <p style="font-size:.66em"><strong>6 ATES pairs</strong> (not 4): per-pair capacity is uncertain (0.5–2 MWth),
+    so we size off the low end — P(supply ≥ 5 MWth) = 99.8%.</p>
+    <aside class="notes">ATES is a seasonal cold battery. We size off the peak AND the low-throughput end:
+    4 pairs would meet demand only 29% of the time, so we carry 6. Honest robustness.</aside>
+  </section>
+
+  <!-- 8 Design B contrast -->
+  <section>
+    <h2>Design B — absorption-chiller contrast</h2>
+    <div class="two">
+      <div>
+        <ul>
+          <li>LiBr/H₂O chiller driven by geothermal heat (COP<sub>th</sub> ≈ 0.7)</li>
+          <li>Needs <strong>≈ 7.1 MWth drive heat</strong> for 5 MWth cold — heat we'd rather sell</li>
+          <li>Cooling LCOE <strong>23.4</strong> vs Design A <strong>23.0 €/GJ</strong> — a wash</li>
+          <li>Wants 85–95 °C drive heat; our resource is <em class="k">77 °C</em></li>
+        </ul>
+      </div>
+      <div>
+        <table>
+          <tr><th></th><th>Design A</th><th>Design B</th></tr>
+          <tr><td>Cooling LCOE</td><td><strong>23.0</strong></td><td>23.4</td></tr>
+          <tr><td>Heat for cooling</td><td><strong>0</strong></td><td>7.1 MWth</td></tr>
+          <tr><td>Total capex</td><td>€21.3M</td><td>€17.8M</td></tr>
+          <tr><td>Cooling elec</td><td>~1,000</td><td>~400 MWh/yr</td></tr>
+        </table>
+      </div>
+    </div>
+    <p style="font-size:.66em">A real contrast, not a strawman. On cost it's a tie — so A wins on the two
+    things that aren't close: it keeps the heat we sell, and it works at 77 °C.</p>
+    <aside class="notes">Cost is a wash once ATES is sized honestly. A wins on keeping ~7 MWth of saleable
+    heat and on the thermodynamics of a 77 °C resource.</aside>
+  </section>
+
+  <!-- 9 Economics -->
+  <section>
+    <h2>Economics — extended LCOE</h2>
+    <div class="two">
+      <div>
+        <div class="kpis" style="flex-direction:column">
+          <div class="kpi"><b>11.8</b><span>heat €/GJ</span></div>
+          <div class="kpi"><b>23.0</b><span>cooling €/GJ</span></div>
+          <div class="kpi"><b>13.4</b><span>blended €/GJ</span></div>
+        </div>
+        <p style="font-size:.62em">Engine <strong>validated to 5.769 €/GJ</strong> vs the TNO reference
+        before we trust it. As a <strong>distribution</strong>: heat LCOE P10/P50/P90 = 10.8 / 12.6 / 26.7
+        €/GJ — the upper tail is the cost of the resource under-delivering (→ stage the appraisal).
+        <strong>Fundable:</strong> SDE++ ≈ 3.8 €/GJ (~€63/tCO₂, ~13 kt CO₂/yr) → equity <strong>IRR ≈ 21 %</strong>.
+        ~2× the Dutch heat-only benchmark — and we explain exactly why.</p>
+      </div>
+      <div><img class="full" src="../../figures/lcoe_tornado.png" alt="LCOE tornado"></div>
+    </div>
+    <aside class="notes">The 2× gap is the punchline: a cooler, less productive reservoir needs 4 wells for
+    10 MWth where the benchmark needs 2 for 13. Cause and effect, Challenge 1 → Challenge 2.</aside>
+  </section>
+
+  <!-- 10 Bonus AI -->
+  <section>
+    <h2>Bonus — AI-assisted workflow</h2>
+    <ul>
+      <li><code>pipeline.py</code> — one CLI, raw LAS → hybrid LCOE, reproducible end-to-end</li>
+      <li>LightGBM missing-log prediction, validated by <strong>leave-one-well-out</strong></li>
+      <li>Cross-well R²: DTC 0.51 (usable) · RHOB 0.10 · NPHI −0.20</li>
+      <li><strong>Fallback rule:</strong> R² &lt; 0.50 → ThermoGIS deterministic. We prove it, not assume it.</li>
+    </ul>
+    <aside class="notes">The honesty is the point — log prediction doesn't generalise across these four wells,
+    so we fall back. AI as a validated screen, not a number we quietly trust.</aside>
+  </section>
+
+  <!-- 11 Africa -->
+  <section>
+    <h2>Does this travel? Applicability to African geothermal</h2>
+    <ul>
+      <li><em class="k">The method transfers, the numbers don't.</em> Probabilistic resource workflow,
+        database reconciliation, financed LCOE engine and the AI pipeline are geology-agnostic.</li>
+      <li><strong>Not a Rift template:</strong> East African geothermal (Kenya Olkaria/Menengai, Ethiopia
+        Aluto/Corbetti) is high-enthalpy volcanic → <strong>power</strong>, a different model.</li>
+      <li><strong>Where <em>this</em> fits:</strong> North African / intracratonic <strong>sedimentary</strong>
+        basins (Algeria, Tunisia, Egypt — direct-use), and the <strong>hybrid-cooling</strong> half for
+        cooling-dominated African cities.</li>
+    </ul>
+    <aside class="notes">We're honest a 77 °C Dutch sandstone doublet isn't a Rift template. The transferable
+    asset is the workflow — and the cooling design may be more relevant on a hot, cooling-hungry continent.</aside>
+  </section>
+
+  <!-- 12 Risks -->
+  <section>
+    <h2>Risks, assumptions, what we did <em>not</em> do</h2>
+    <ul>
+      <li><strong>Thermal breakthrough quantified</strong> (Gringarten-Sauty): ~177 yr ≫ 30-yr life →
+        constant-MWth validated. Other risks: <strong>ATES throughput</strong> (6 pairs → 99.8%),
+        <strong>drilling-cost volatility</strong>; resource downside carried in the LCOE tail</li>
+      <li>Key assumptions: reinjection 35 °C (ΔT 42 °C), e-price €150/MWh, 6,000/2,000 load-hours</li>
+      <li>Out of scope (declared): heat-distribution network, permitting, 3-D/FEM thermal modelling</li>
+    </ul>
+    <aside class="notes">Naming what we didn't do builds trust. Each is a next-phase item, not a gap we missed.</aside>
+  </section>
+
+  <!-- 13 Ask -->
+  <section class="center">
+    <h2>The ask / next steps</h2>
+    <ul style="display:inline-block;text-align:left">
+      <li><strong>Pilot first:</strong> one well → in-situ injectivity test → confirm Darcy → complete
+        doublet → second doublet → FID</li>
+      <li>Close before FID: 3-D seismic, in-situ injectivity test, transient breakthrough sim</li>
+    </ul>
+    <p class="lead" style="font-size:1.0em">The resource is real but modest; two doublets are the honest
+    minimum; Design A is the right scheme.</p>
+    <p style="font-size:.62em;color:#666">Sources: ThermoGIS / DINOloket (TNO); TNO LCOE workbook (van Wees et al.);
+    Fleuchaus et al. 2018; ASHRAE; IEA HPT.</p>
+    <aside class="notes">Close on the ask — a staged, de-risked path to FID — and repeat the one-line thesis.
+    End confident, not hedged.</aside>
+  </section>
+
+</div></div>
+<div class="footer">Vent Squad · SPE Africa Geothermal Datathon 2026</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, slideNumber: 'c/t', transition: 'slide',
+    width: 1280, height: 720, margin: 0.06,
+    plugins: [ RevealNotes ],
+  });
+</script>
+</body>
+</html>

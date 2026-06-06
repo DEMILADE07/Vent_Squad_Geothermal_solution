@@ -10,7 +10,7 @@ from src.paths import MC_MWTH_PARQUET
 
 warnings.filterwarnings("ignore")
 
-EXPECTED_COMMANDS = {"ingest", "petro", "predict", "ml", "lcoe", "all"}
+EXPECTED_COMMANDS = {"ingest", "petro", "predict", "dispatch", "ml", "lcoe", "all"}
 
 
 def test_cli_exposes_all_stages():
@@ -19,8 +19,8 @@ def test_cli_exposes_all_stages():
 
 
 def test_stage_functions_are_importable():
-    for name in ("stage_ingest", "stage_petro", "stage_predict", "stage_ml",
-                 "stage_lcoe"):
+    for name in ("stage_ingest", "stage_petro", "stage_predict", "stage_dispatch",
+                 "stage_ml", "stage_lcoe"):
         assert callable(getattr(pipeline, name))
 
 

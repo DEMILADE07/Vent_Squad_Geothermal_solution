@@ -17,9 +17,10 @@ that Design A keeps for sale.  On a reservoir whose heat LCOE is already ~2x the
 Dutch benchmark, spending heat to make cold is the wrong trade, and the cost
 comparison shows it rather than asserting it.
 
-Heat MWth is taken from the Monte-Carlo P50 deliverability of the chosen scheme
-(see src/montecarlo.py), not a nominal flow rate, so the economics inherit the
-ThermoGIS-reconciled resource uncertainty.
+Heat sold is the 10 MWth district demand. The 2-doublet *resource* P50 is
+14.1 MWth (src/montecarlo.py, independent doublets), so the scheme is resource-
+adequate with headroom and the LCOE is sized on heat actually delivered rather
+than on the resource surplus.
 """
 
 from __future__ import annotations
@@ -47,7 +48,11 @@ class SchemeConfig:
     ah_depth_m: float = 2000.0          # deviated NL Rotliegend doublet, along-hole
     t_prod_c: float = 77.0              # BLT-01 ThermoGIS P50 temperature
     t_reinject_c: float = 35.0          # ThermoGIS standard reinjection
-    heat_mwth_p50: float = 10.12        # MC P50 for the 2-doublet scheme
+    # Heat *sold* = the 10 MWth district heating demand. The 2-doublet *resource*
+    # P50 is 14.1 MWth (src/montecarlo.py, independent-doublet scheme) — ~40 %
+    # headroom — so deliveries are demand-capped, not resource-capped; the LCOE is
+    # sized on heat actually sold, which avoids crediting the resource surplus.
+    heat_delivered_mwth: float = 10.0
     heat_loadhours: float = 6000.0
     demand_heating_mwth: float = DEMAND_HEATING_MWTH
     demand_cooling_mwth: float = DEMAND_COOLING_MWTH
@@ -63,9 +68,9 @@ class SchemeConfig:
                         heat_loadhours=self.heat_loadhours)
 
 
-def size_design_a(cfg: SchemeConfig, ates_pairs: int = 4) -> dict:
+def size_design_a(cfg: SchemeConfig, ates_pairs: int = 6) -> dict:
     """Design A — geothermal heat + ATES/heat-pump cooling."""
-    heat = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_mwth_p50)
+    heat = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_delivered_mwth)
     cool = cooling_economics(CoolingCase(cooling_mwth=cfg.demand_cooling_mwth,
                                          ates_pairs=ates_pairs))
     meets_heat = heat["heat_mwth"] >= cfg.demand_heating_mwth
@@ -89,7 +94,7 @@ def size_design_a(cfg: SchemeConfig, ates_pairs: int = 4) -> dict:
 
 def size_design_b(cfg: SchemeConfig) -> dict:
     """Design B — geothermal heat + LiBr/H2O absorption-chiller cooling."""
-    heat = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_mwth_p50)
+    heat = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_delivered_mwth)
     cool = cooling_economics_absorption(
         AbsorptionCoolingCase(cooling_mwth=cfg.demand_cooling_mwth),
         heat_lcoe_eur_gj=heat["lcoe_eur_gj"])
@@ -116,7 +121,7 @@ def size_design_b(cfg: SchemeConfig) -> dict:
 
 
 def comparison_table(cfg: SchemeConfig | None = None,
-                     ates_pairs: int = 4) -> pd.DataFrame:
+                     ates_pairs: int = 6) -> pd.DataFrame:
     """Side-by-side Design A vs Design B for the deck and report."""
     cfg = cfg or SchemeConfig()
     a, b = size_design_a(cfg, ates_pairs), size_design_b(cfg)

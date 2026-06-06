@@ -1,7 +1,9 @@
 # SPE Africa Geothermal Datathon 2026 — Project Context
 
-> Working context file. Read this first before touching code, notebooks, or
-> slide drafts. Updated 2026-05-28.
+> **Data inventory and challenge brief.** This file records the raw-data facts and
+> the brief as we received them; it is background, not the solution. The completed
+> solution and all final numbers are in [the technical report](deliverables/Vent_Squad_Report.md)
+> and the judge-facing [project walkthrough](PROJECT_WALKTHROUGH.md). Last updated 2026-06-06.
 
 ## 1. The challenge in one paragraph
 
@@ -22,11 +24,12 @@ graded challenges and one bonus track.
 | Date          | Event                                                |
 |---------------|------------------------------------------------------|
 | 2026-05-11    | Kick-off, data + challenge released                  |
-| **2026-06-04 23:59 EAT** | **Final submission deadline (hard)**      |
+| **2026-06-07 23:59 EAT** | **Final submission deadline (hard; extended from 4 June)** |
 | Early July    | Finalists notified                                   |
 | 2026-07-22..24| SAASC 2026 at Kenyatta University, Nairobi — finalist presentations |
 
-> Today is 2026-05-28 → **~7 days left** to the submission deadline.
+> Deadline 2026-06-07 (extended from 4 June). The analysis is complete; this file is
+> retained as the data-inventory record behind the final solution.
 
 ## 3. Deliverables (must submit all three via Google Form)
 
@@ -144,7 +147,7 @@ you'll need: a cooling-load block, surface-side equipment costs (heat
 pump COP, chiller COP, BTES/ATES storage), and a re-derived LCOE that
 covers both energy products.
 
-## 5. Key constraints, gotchas, and "do not forget"
+## 5. Key data constraints and how we handle them
 
 1. **Unit harmonisation.** JUT-01 LAS is in feet; the others in metres.
    Coordinates are RD New (EPSG:28992) in metres. Convert once, centrally.
@@ -195,21 +198,7 @@ A defensible order of operations, not a prescription:
    property-extraction + LCOE-update steps into a runnable pipeline
    (Python script or notebook with documented entry points).
 
-## 7. Submission checklist crib
-
-- [ ] `target_lithologies.csv` no longer has flagged rows (or you've
-      documented why some remain).
-- [ ] LCOE workbook has a hybrid heating+cooling tab and a final
-      LCOE number for the proposed design.
-- [ ] Notebooks run top-to-bottom from a fresh clone.
-- [ ] `requirements.txt` / `environment.yml` is real and pinned.
-- [ ] README explains how to re-run everything end-to-end.
-- [ ] Deck ≤ 15 slides, with SPE member numbers on the title slide.
-- [ ] Video 3–5 min, narrated, public Google Drive link.
-- [ ] Filenames follow `Team_<TeamName>_(Code|PPT|Vid)_V<n>` exactly.
-- [ ] External data sources cited in the report.
-
-## 8. Useful references
+## 7. Useful references
 
 - TNO ThermoGIS — https://www.thermogis.nl/
 - NLOG / DINOloket — Dutch well-data portal.

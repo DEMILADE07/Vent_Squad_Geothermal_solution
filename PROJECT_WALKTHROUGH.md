@@ -1,678 +1,438 @@
-# Vent Squad — Project Walkthrough & Team Tasks
+# Vent Squad — Project Walkthrough (a plain-English companion for the evaluator)
 
 **SPE Africa Geothermal Datathon 2026**
-**Author / team lead:** Demilade
-**Last updated:** 2026-06-02 (submission day)
+**Team Vent Squad** — Demilade Kolawole-Jacobs (lead), Fikayo, Ashinze, Ayomide, Sodiq
+**Last updated:** 2026-06-06
 
 ---
 
 ## How to read this document
 
-I wrote this for the whole team. Nobody needs a geothermal background to follow
-it — I start from the absolute basics and build up. If you already know a
-section, skip it. The structure is:
+This is a plain-English companion to our [technical report](deliverables/Vent_Squad_Report.md),
+written for you, the evaluator. The report is the formal submission; this document
+exists so that anyone — including a reviewer without a geothermal background — can
+follow *what* we did, *why*, and *how to check it*, building from the basics. Every
+number here is produced by the code in `src/`, is unit-tested, and reproduces from a
+fresh clone (Part H). Where I use a technical term for the first time it is **bold**
+and defined in the glossary (Part G).
 
-- **Part A — The problem**, explained from zero.
-- **Part B — The data** we were handed, and what each file actually is.
-- **Part C — What I've built so far**, step by step, with the *concept first* and
-  the *code second*, plus the key number that came out of each step.
-- **Part D — The story we'll tell the judges** (the headline findings).
-- **Part E — What's left to do.**
-- **Part F — Your tasks**, split by person. At minimum everyone QAs (quality-
-  checks) the part that matches their background.
-- **Part G — A plain-English glossary** of every bit of jargon in the project.
-
-Wherever I write a term in **bold the first time**, it's defined in the glossary
-(Part G). The code all lives in the `src/` folder; the analysis you can run lives
-in `notebooks/`; the tests that prove the code is correct live in `tests/`.
-
-> **First thing to try:** clone the repo, then from the project folder run
-> `.venv\Scripts\python.exe -m pytest -q`. If it says ~39 passed, your setup
-> works and every number in this document is reproducible on your machine. (Full
-> setup steps are at the very end, Part H.)
+The structure:
+- **Part A — The problem**, from zero.
+- **Part B — The data** we were given.
+- **Part C — What we built and found**, step by step, concept first, then the number.
+- **Part D — The story in five sentences.**
+- **Part E — Why you can trust the numbers** (validation gates and honesty checks).
+- **Part F — Applicability to African geothermal.**
+- **Part G — Glossary.**
+- **Part H — How to reproduce everything.**
 
 ---
 
 # Part A — The problem, from zero
 
-## A.1 What is geothermal energy?
+## A.1 What geothermal is
 
-The ground gets hotter the deeper you go — roughly **30 °C per kilometre** in the
-Netherlands. If you drill down ~2 km, the rock and the water trapped in it sit at
-70–90 °C. **Geothermal energy** simply means pumping that hot water up, taking
-the heat out of it at the surface, and pumping the now-cooler water back down so
-the underground "battery" doesn't run dry. It's a heat source, not (in our case)
-an electricity source — the water isn't hot enough to make power efficiently, but
-it's perfect for heating buildings.
+The ground gets hotter with depth — about **30 °C per kilometre** in the
+Netherlands. Drill ~2 km and the water in the rock sits at 70–90 °C. **Geothermal
+direct-use** means pumping that hot water up, taking the heat out at the surface,
+and pumping the cooled water back down so the underground reservoir does not run dry.
+At these temperatures it is a *heat* source, not an efficient electricity source —
+ideal for heating (and, as we show, cooling) buildings.
 
-## A.2 What does our "customer" need?
+## A.2 What the district needs
 
-We're designing a heat-and-cooling supply for a **district** (a neighbourhood /
-cluster of buildings) in the **Utrecht region of the Netherlands**. The brief
-gives us a demand to meet:
+We design a heat-and-cooling supply for a mixed urban **district** in the **Utrecht
+region**, with a stated demand of **≥ 10 MWth of heating** (winter) and **≥ 5 MWth
+of cooling** (summer). *MWth* = megawatts of thermal power. The brief splits the
+marks: **Challenge 1 (60 %)** — is there enough hot water? **Challenge 2 (40 %)** —
+design the surface plant that delivers both heating and cooling, and cost it. Plus a
+**bonus** AI-workflow track.
 
-- **At least 10 MWth of heating** (in winter), and
-- **At least 5 MWth of cooling** (in summer).
+## A.3 How you get heat out: the doublet
 
-**MWth** = "megawatts thermal" = millions of joules of heat per second. Think of
-10 MWth as roughly the heating need of a few thousand Dutch homes at once. The
-"th" is there to distinguish heat power from electrical power (MWe).
+You drill a pair of wells — a **doublet**. The **producer** lifts hot water up; a
+surface **heat exchanger** strips the heat into a clean district loop; the
+**injector** returns the cooled water to the same layer ~1.3 km away, keeping
+pressure up. The 1.3 km spacing is chosen so the injected cold does not reach the
+producer too soon (**thermal breakthrough**).
 
-So the job has two halves:
-- **Challenge 1 (worth 60% of the score):** Is there enough hot water down there
-  to deliver the heat? (A subsurface / geoscience question.)
-- **Challenge 2 (worth 40%):** Design the surface plant — the pipes, pumps, heat
-  exchangers and machines — that turns that hot water into both heating *and*
-  cooling for the district, and work out what it costs. (An engineering +
-  economics question.)
-- **Bonus track:** Build an AI/automation tool that does part of this workflow by
-  itself. (We haven't done this part yet — it's Day 4 work.)
+## A.4 Where the hot water is: the Rotliegend
 
-## A.3 How do you get heat out of the ground? The "doublet".
+The target is the **Rotliegend sandstone** (the **Slochteren Formation**), a
+~290-million-year-old sandstone ~1.8–2.3 km deep — the same rock as the Groningen gas
+field, so it is well understood. Two rock properties decide whether it is a good
+reservoir: **porosity** (φ — the fraction that is fluid-filled pore space) and
+**permeability** (k — how easily fluid flows through it, in millidarcies). We need
+both: storage *and* flow.
 
-You don't drill one hole — you drill **two**, working as a pair. This pair is
-called a **doublet**:
+## A.5 The honest tension at the heart of our answer
 
-1. The **producer** well brings hot water *up* from the deep sandstone layer.
-2. At the surface, a **heat exchanger** takes the heat out of that water (like a
-   car radiator) and hands it to a separate clean-water loop that runs to the
-   district.
-3. The **injector** well pumps the now-cooled water *back down* into the same
-   layer, a safe distance away (~1.3 km), so the pressure underground stays up
-   and we don't waste the water.
-
-It's a closed loop underground: take water out hot, put it back cool, let the
-rock reheat it over time. The two wells are ~1.3 km apart so the cold injected
-water doesn't reach the producer too quickly (if it did, the producer would cool
-down — that's called **thermal breakthrough**).
-
-## A.4 Where exactly is the hot water? The "Rotliegend" reservoir.
-
-Hot water alone isn't enough — it has to be in rock that can give it up fast
-enough. The target rock layer is the **Rotliegend sandstone** (specifically a
-unit called the **Slochteren Formation**), a ~290-million-year-old sandstone that
-sits ~1.8–2.3 km deep under this area. It's the same rock that holds the famous
-Groningen gas field, so it's well understood in the Netherlands.
-
-Two properties decide whether a rock is a good geothermal **reservoir**:
-
-- **Porosity** (symbol φ, "phi"): what fraction of the rock is empty pore space
-  that can hold water. Think of a sponge vs. a brick. 17% porosity (our best
-  well) means 17% of the rock volume is fluid-filled holes. Higher = more water
-  stored.
-- **Permeability** (symbol k, measured in **millidarcies, mD**): how easily water
-  can *flow through* those connected pores. A sponge with big connected holes
-  flows easily (high k); one with tiny isolated holes doesn't (low k). This is
-  the single most important number for "can we pump water fast enough?".
-
-A rock can be porous but not permeable (lots of storage, no flow). We need both.
-
-## A.5 The honest tension in this project
-
-Here's the punchline I want everyone to internalise, because it's the spine of
-our whole story:
-
-> The Dutch industry benchmark gets ~13 MWth of heat out of **one** doublet,
-> because their reference reservoir is ~94 °C and very permeable. **Our** best
-> reservoir is only **77 °C** and less permeable, so **one** doublet only gives
-> us about **5 MWth — half the heating demand.** That means we need **two**
-> doublets (four wells) to clear 10 MWth, which roughly doubles the drilling
-> cost. We don't hide this — we prove it with the data and let it drive the
-> design and the economics. Judges reward an honest, internally consistent story
-> far more than a number that's been quietly massaged to look good.
+> The Dutch benchmark gets ~13 MWth from **one** doublet because its reference
+> reservoir is ~94 °C and very permeable. **Our** best reservoir is only **77 °C**
+> and less permeable, so **one** doublet delivers only ~5 MWth — half the heating
+> demand. We therefore need **two** doublets (four wells), which roughly doubles the
+> drilling cost. We do not hide this; we prove it from the data and let it drive the
+> design and the economics. That clean cause-and-effect — a cooler reservoir → more
+> wells → a higher unit cost — is the spine of our submission.
 
 ---
 
 # Part B — The data we were given
 
-Everything lives in the `data/` folder. Here's what each item is, in plain terms.
+Everything lives in `data/`.
 
-## B.1 The four wells (LAS files) — `data/raw/*.las`
-
-A **well log** is a record of measurements taken by instruments lowered down a
-borehole, sampled every few centimetres of depth. A **LAS file** is the standard
-text format these come in. We have four wells: **BLT-01, EVD-01, JUT-01,
-PKP-01** (those are well names).
-
-Each log curve measures something physical about the rock at each depth:
-
-| Curve | What it measures | Why we care |
-|-------|------------------|-------------|
-| **GR** (gamma ray) | natural radioactivity | clays/shales are radioactive, clean sandstone isn't → tells us how "clean" the rock is |
-| **RHOB** (bulk density) | density of the rock | lets us calculate porosity (more pore space = lower density) |
-| **NPHI** (neutron porosity) | hydrogen content ≈ porosity | a second, independent porosity estimate |
-| **DT / DTC** (sonic) | how fast sound travels through rock | a third porosity estimate, and rock strength |
-
-The catch: **only BLT-01 has the full set of curves.** The other three are
-sparse (some only have GR, density and sonic). That unevenness is exactly why the
-**bonus AI track** makes sense — train a model on the well that has everything
-(BLT-01) to *predict* the missing curves on the others.
-
-Two data traps the brief warns about, both of which I handled in code:
-- The number **-999.25** in a LAS file is not a measurement — it's the code for
-  "no data here". It must be replaced with a blank before doing any maths, or it
-  poisons every average.
-- **JUT-01's depths are recorded in feet**, while the other three are in metres.
-  Mixing them silently would wreck every depth-based comparison.
+## B.1 Four wells (LAS logs) — `data/raw/*.las`
+A **well log** records instrument measurements every few centimetres down a
+borehole. We have four wells — **BLT-01, EVD-01, JUT-01, PKP-01** — measuring gamma
+ray (**GR**, clay content), bulk density (**RHOB**, → porosity), neutron porosity
+(**NPHI**) and sonic (**DT/DTC**). Only **BLT-01 carries the full suite**; the others
+are sparse — which is exactly why the bonus AI track (predict missing curves) makes
+sense. Two traps we handle in code: the value **-999.25** means "no data" (not a
+measurement), and **JUT-01's depths are in feet** while the others are in metres.
 
 ## B.2 Lithostratigraphy — `data/Lithostratigraphic Data.xlsx`
+The named rock layers top-to-bottom per well, so we analyse only the Slochteren
+reservoir interval. It also marks **faults**, which we handle specially.
 
-**Lithostratigraphy** = the named layers of rock, top to bottom, like a stack of
-geological pancakes. This file says, for each well, "from depth X to depth Y the
-rock is formation Z". We use it to find exactly where the Rotliegend / Slochteren
-layer starts and stops in each well, so we only analyse the reservoir interval
-and not the rock above it. It also marks **faults** (cracks where the rock layers
-are offset) — these need careful handling because they can repeat or cut out
-layers.
+## B.3 Well paths — `data/Well Path Data.xlsx`
+Wells slant, so there are two depths: **MD** (measured along the bent borehole) and
+**TVD** (true vertical). Porosity, temperature and which layer you are in all depend
+on TVD, so we convert MD→TVD with the industry-standard **minimum-curvature** method.
 
-## B.3 Well-path / deviation surveys — `data/Well Path Data.xlsx`
-
-Wells aren't drilled straight down — they slant. So there are two different
-"depths":
-
-- **MD (measured depth):** distance *along the borehole* (like the length of a
-  bent straw).
-- **TVD (true vertical depth):** the actual *straight-down* depth (how far below
-  the surface you really are).
-
-For a slanted well these differ a lot. The deviation survey lists, every so
-often, the well's angle and direction, which lets us convert MD → TVD. **This
-matters enormously:** porosity, temperature, and which layer you're in all depend
-on *true vertical* depth. Comparing wells using MD would be comparing apples to
-slanted oranges.
-
-## B.4 ThermoGIS reservoir summary — `data/ThermoGIS Data.xlsx`
-
-**ThermoGIS** is the Dutch national geothermal database (run by TNO, the Dutch
-research institute). For each of our four wells it gives an expert estimate of
-the reservoir's thickness, porosity, permeability, **transmissivity** (k×h — see
-glossary), temperature, and even an expected flow rate and power — each as a
-**P90 / P50 / P10** range (explained next). Think of this as a partial "answer
-key" from the national experts. We don't blindly copy it; we compute our own
-numbers from the raw logs and then **reconcile** (cross-check) against ThermoGIS.
-When our independent calculation lands on their numbers, that's strong evidence
-we did it right.
-
-**P90 / P50 / P10 — what percentiles mean.** Geology is uncertain, so estimates
-come as a range, not a single number:
-- **P50** = the middle / most-likely value (50% chance the truth is higher, 50%
-  lower).
-- **P90** = a *pessimistic* value (90% chance the truth is *at least* this — so
-  it's a low number).
-- **P10** = an *optimistic* value (only 10% chance the truth is this good or
-  better — a high number).
-
-So "P90 < P50 < P10" in the resource sense (low / middle / high).
-
-Here is the ThermoGIS table — read it and you already know why BLT-01 is our hero:
-
-| Well | Thickness P50 (m) | Porosity (%) | Permeability P50 (mD) | Transmissivity (Dm) | Temp (°C) | Verdict |
-|------|------|------|------|------|------|---------|
-| **BLT-01** | **130** | **17** | **82** | **9.3** | **77** | **Sweet spot — our anchor well** |
-| JUT-01 | 125 | 11 | 40 | 4.8 | 72 | Decent backup |
-| PKP-01 | 60 | 9 | 1 | 0.1 | 88 | Hot but too tight (won't flow) |
-| EVD-01 | 76 | 9 | 6 | 0.4 | 72 | Weakest all round |
+## B.4 ThermoGIS — `data/ThermoGIS Data.xlsx`
+The Dutch national geothermal database (TNO). For each well it gives expert
+estimates of thickness, porosity, permeability, **transmissivity** (k×h), net-to-gross,
+temperature, and an expected flow rate and power — each as a **P90/P50/P10** range
+(pessimistic / most-likely / optimistic). We compute our own numbers from the raw
+logs and **reconcile** against ThermoGIS; landing on the national database is strong
+evidence we did it right.
 
 ## B.5 Target lithologies — `data/target_lithologies.csv`
-
-A 3,455-row table of reservoir-property samples, one per well location. It shipped
-**broken on purpose**: every row was flagged "needs TVD conversion", and the TVD
-column was empty. Part of Day-1 work was reverse-engineering and fixing it (see
-C.1). I found the file had its measured-depths mislabelled as vertical depths,
-and JUT-01's were in feet — a trap. We fixed it in code and cleared the flags.
+A 3,455-row property table that shipped **deliberately broken**: every row flagged
+"needs TVD conversion" with the TVD column empty, depths mislabelled (and in feet for
+JUT-01). We reverse-engineered it, matched each row to its exact log sample by GR,
+recovered the true depths, and cleared the flags (see C.1).
 
 ## B.6 The economics template — `LCOE.xlsx`
-
-A spreadsheet from TNO that calculates the **LCOE** (Levelised Cost Of Energy) of
-a geothermal heat project. LCOE is *the* headline economic number — see C.6 for a
-full plain-English explanation. The stock spreadsheet only handles *heating*.
-Challenge 2 asks us to extend it to *heating + cooling*, which is a big part of
-what I built on Day 3. **I never edit the original file** — it's our reference
-"answer key", so I rebuilt its logic in Python and validated against it instead.
+A TNO spreadsheet that computes the **LCOE** (levelised cost of energy) of a
+heat-only project. We never edit it — it is our reference "answer key" — we rebuilt
+its logic in Python and validate against it (C.6).
 
 ---
 
-# Part C — What I've built so far, step by step
+# Part C — What we built and found
 
-The work is organised into **workstreams (WS)**. Days 0–3 are done. For each
-workstream I give you the *idea*, then *what the code does*, then *the result*.
+The work is organised into workstreams (WS). For each: the idea, what the code does,
+then the result.
 
-## C.1 WS1 — Data foundation (`src/units.py`, `src/mdtvd.py`, `src/wells_io.py`, `src/lithostrat.py`, `src/targets.py`)
+## C.1 WS1 — Data foundation (`units`, `mdtvd`, `wells_io`, `lithostrat`, `targets`)
+Get all the data into one clean, consistent, TVD-referenced table before any
+analysis. We harmonise units (JUT-01 feet→metres, guarded against double-conversion),
+mask the -999.25 nulls and physical-spike garbage, sort the two bottom-up-logged
+wells, convert MD→TVD by minimum curvature (matched to the survey's own TVD column to
+**better than 1 cm** on all four wells), pick the Slochteren interval, and repair the
+broken target file. **Result:** a tidy ~99,000-row `well_logs.parquet`, the bedrock
+everything stands on.
 
-**The idea.** Before any clever analysis, get all the data into one clean,
-consistent, trustworthy table. Garbage in = garbage out, and a quiet bug here
-would poison everything downstream.
+## C.2 WS2 — Petrophysics (`petrophysics.py`)
+From the logs we compute **Vshale** (clay fraction, Larionov *older-rock* form — the
+Rotliegend is ancient, so the young-rock formula would over-clean it), **porosity**
+(from density, sandstone matrix 2.65 g/cc), and **net reservoir** (rock that passes
+Vsh ≤ 0.40 **and** φ ≥ 0.08 — the standard NL cut-offs). **Result** — our independent
+**net-to-gross (NTG)** per well:
 
-**What the code does.**
-- `units.py` converts JUT-01's feet to metres — and is built so that running it
-  twice by accident won't double-convert (a real risk).
-- `wells_io.py` loads all four LAS files, replaces every `-999.25` with "no
-  data", throws out obviously broken spike values, and sorts the depths properly
-  (two wells were logged bottom-to-top).
-- `mdtvd.py` converts measured depth → true vertical depth using the **minimum-
-  curvature method** (the industry-standard way to trace a curved borehole's true
-  path; in plain terms, it fits the smoothest possible curve through the survey
-  points). I checked our TVD against the values in the provided survey and they
-  match to **better than 1 centimetre** on all four wells.
-- `lithostrat.py` finds the Rotliegend/Slochteren layer in each well and handles
-  the faults.
-- `targets.py` fixes the broken `target_lithologies.csv` described in B.5.
+| Well | Our NTG | ThermoGIS NTG | Read as |
+|------|---------|---------------|---------|
+| **BLT-01** | **0.93** | 0.98 | excellent — the anchor |
+| EVD-01 | 0.55 | 0.99 | moderate |
+| JUT-01 | 0.32 | 0.99 | poor (fault-complicated) |
+| PKP-01 | 0.10 | 0.95 | very tight (matches k = 1 mD) |
 
-**The result.** A single tidy table `well_logs.parquet` (~99,000 rows), every
-sample tagged with its true vertical depth and clean. This is the bedrock
-everything else stands on.
+**An honesty point we flag, not bury:** at the anchor our NTG (0.93) matches
+ThermoGIS (0.98) — which is why we trust the BLT-01 numbers we build on. At the
+weaker wells our log-based cut-offs are *stricter* than ThermoGIS's play-average, so
+our NTG is lower; we trust the actual logs there, which makes our estimate the more
+conservative. Crucially, our resource MWth is anchored on ThermoGIS's *own published
+flow*, not on our NTG, so this disagreement sharpens the characterisation without
+changing the Challenge-1 numbers.
 
-## C.2 WS2 — Petrophysics (`src/petrophysics.py`)
+## C.3 WS3 — How much heat can we deliver? (`deliverability.py`)
+Two physics equations turn rock properties into delivered heat: **Darcy's law** (flow
+rate from permeability, thickness and the pressure we apply) and the **thermal-power
+equation** (Power = flow × heat capacity × temperature drop). We *calibrate* the
+Darcy model so it reproduces ThermoGIS's own published flow and power — it matches to
+**~1 %** on both productive wells at a single ~16.5-bar drawdown and 35 °C
+reinjection. **Result:** a single BLT-01 doublet delivers about **5 MWth (P50)** —
+half the heating demand. This is the finding that forces a two-doublet design.
 
-**Petrophysics** = turning raw log measurements into rock properties we can
-reason about.
+## C.4 Uncertainty done honestly (`montecarlo.py`)
+"5 MWth" is the middle estimate; geology is uncertain, so we report a **distribution**
+from 10,000 Monte-Carlo draws. Three deliberate choices make it honest:
+1. A **split (two-piece) lognormal** fit reproduces ThermoGIS's P90/P50/P10 *exactly*
+   (a single-sigma fit overshoots BLT-01's published flow P10 and inflates the upside).
+2. A **300 m³/h pump/sand-control cap** de-rates the unphysical optimistic tail (NL
+   doublets run 100–300 m³/h; the surface choke, not the reservoir, sets the limit).
+3. Two doublets are the **sum of two *independent* draws**, not one draw doubled —
+   doubling one realisation would impose perfect correlation and *understate* the
+   real two-site result.
 
-**The idea + what the code does.**
-- **How clean is the rock? (Vshale)** From the gamma-ray curve we compute
-  **Vshale** — the fraction of the rock that is shale/clay rather than clean
-  sand. We use the **Larionov (older-rocks) formula** because the Rotliegend is
-  ancient (~290 Ma); using the formula meant for young rocks would over-clean the
-  answer. Shaly rock = bad reservoir, so this matters.
-- **How much space? (Porosity, φ)** From the density curve, using the standard
-  sandstone assumption (rock-grain density 2.65 g/cc, water 1.00 g/cc). Where a
-  second porosity curve (NPHI) exists, we cross-check.
-- **Net reservoir.** We only count rock that is actually good: Vshale ≤ 40% **and**
-  porosity ≥ 8% (standard Dutch Rotliegend cut-offs). The fraction of the layer
-  that passes is the **Net-to-Gross (NTG)**.
-
-**The result** — our independent per-well table (`rotliegend_summary.csv`):
-
-| Well | Net-to-Gross | Net porosity | Read as |
-|------|------|------|---------|
-| BLT-01 | **0.93** | **15%** | excellent — 93% of the layer is good reservoir |
-| EVD-01 | 0.55 | 11% | moderate |
-| JUT-01 | 0.32 | ~10% | poor (and structurally complicated by a fault) |
-| PKP-01 | 0.10 | ~9% | very tight — matches ThermoGIS's k = 1 mD |
-
-This independently confirms BLT-01 as the well to build around.
-
-## C.3 WS3 — Resource: how much heat can we actually deliver? (`src/deliverability.py`)
-
-**The idea.** Two physics equations turn rock properties into delivered heat.
-
-1. **Flow rate — how fast can we pump? (Darcy's law)** There's a 150-year-old
-   equation (**Darcy's law**) for how fast fluid flows through rock given the
-   permeability, the thickness of the layer, and how hard we push (the pressure
-   difference, called **drawdown**). More permeable + thicker + harder push =
-   more flow. We express the rock's flow capacity as **transmissivity = k × h**
-   (permeability times thickness).
-
-2. **Heat power — how much heat is in that flow? (the thermal power equation)**
-   `Power (MWth) = water flow × water heat capacity × temperature drop`. The
-   "temperature drop" (**ΔT**, "delta-T") is how much we cool the water at the
-   surface before reinjecting it — from 77 °C down to 35 °C, a ΔT of 42 °C for
-   BLT-01.
-
-**The reconciliation (why you can trust our numbers).** I calibrated our Darcy
-model so that it **reproduces ThermoGIS's own published flow and power numbers**
-(it matches to ~1% on the two good wells when we assume a realistic ~16.5-bar
-drawdown and a 35 °C reinjection temperature). Because our independent physics
-lands on the national database's numbers, we've earned the right to use the model
-to explore "what-if" scenarios.
-
-**The result.** A single BLT-01 doublet delivers about **5 MWth** (P50) — which
-is *half* the heating demand. This is the key finding that forces a two-doublet
-design.
-
-## C.4 Monte-Carlo uncertainty (`src/montecarlo.py`)
-
-**The idea.** "5 MWth" is the middle estimate, but geology is uncertain. Rather
-than pretend we know the answer exactly, we run a **Monte-Carlo simulation**:
-basically, roll the dice 10,000 times. Each "roll" draws a plausible value of the
-reservoir's transmissivity (from the ThermoGIS P90/P50/P10 range), pushes it
-through the flow + power equations, and records the resulting MWth. After 10,000
-rolls you get a *distribution* of possible outcomes, not a single guess.
-
-**What the code does.** Fits a statistical distribution to the ThermoGIS range,
-draws 10,000 samples per well, computes MWth for each, and reports the P10/P50/P90
-of the result plus **the probability of beating the 10 MWth demand**.
-
-**The result:**
+**Result:**
 
 | Scheme | P50 heat | Chance of clearing 10 MWth |
-|--------|------|------|
-| 1 doublet at BLT-01 | 5.1 MWth | 31% |
-| **2 doublets at BLT-01** | **10.1 MWth** | **50%** |
+|--------|----------|----------------------------|
+| 1 doublet @ BLT-01 | **5.05 MWth** | **29 %** |
+| **2 doublets @ BLT-01** | **13.2 MWth** | **62 %** |
+| 3 doublets @ BLT-01 | 19.2 MWth | 85 % |
 
-So two doublets is the honest minimum to have a coin-flip-or-better chance of
-meeting demand — and it's why everything downstream assumes a 4-well scheme.
+The bounded single-doublet P10 is **14.6 MWth** (not the unbounded model's implausible
+27) — no 77 °C doublet beats the ~13 MWth Dutch benchmark. **Two doublets are the
+honest minimum**: better-than-even, with real headroom above the demand, and we size
+the plant to the 10 MWth *delivered* demand so the surplus de-risks delivery rather
+than flattering the economics. We treat independence as a labelled assumption and
+bracket it: a fully-correlated pair (the conservative bound) gives ~10.1 MWth P50 /
+~50 %, the independent case 13.2 / 62 %, and reality sits between — the scheme clears
+10 MWth at P50 either way, so the conclusion is robust to it.
 
-## C.5 WS4 — Surface design: Design A vs Design B (`src/surface.py`)
+## C.5 Will it last? Thermal breakthrough (`reservoir_thermal.py`)
+The cash flow assumes the produced temperature stays flat for the field life — true
+only if the injected cold front has not reached the producer. Using the
+**Gringarten-Sauty** doublet result (with the rock's heat capacity retarding the
+front), breakthrough at 1.3 km spacing is **~177 years away** — far beyond the 30-year
+life. This is a *homogeneous-reservoir* estimate (real heterogeneity would bring it
+somewhat earlier; neglecting conduction pushes it later), so it is breakthrough-safe
+with a large margin rather than a precise date, to be confirmed with a heterogeneous
+transient simulation. Breakthrough only bites at spacings well below 1 km.
 
-Now Challenge 2. The hot water arrives at the surface; how do we make **both**
-heating and cooling from it? I sized two competing designs against the same
-2-doublet heat source.
+## C.6 WS4 — Surface design: A vs B (`surface.py`, `dispatch.py`)
+The hot water arrives at the surface; how do we make **both** heating and cooling?
+- **Design A (recommended): geothermal + ATES + heat pumps.** Heating from the
+  geothermal loop with an electric **heat pump** (COP ≈ 4.2) trimming winter peaks.
+  Cooling from **ATES** — cold banked in a shallow aquifer in winter, spent in summer
+  — a seasonal "cold battery," with a heat pump trimming the hottest days.
+- **Design B (contrast): absorption chiller.** Makes cold by *burning heat* (~7 MWth
+  of geothermal heat to make 5 MWth of cold).
 
-- **Design A (my recommendation): geothermal + ATES + heat pumps.**
-  - Heating comes straight from the geothermal loop via heat exchangers, with an
-    electric **heat pump** (a machine that moves heat, like a fridge run in
-    reverse; very efficient — gives ~4 units of heat per 1 unit of electricity)
-    to top up winter peaks.
-  - Cooling comes from **ATES — Aquifer Thermal Energy Storage.** This is clever:
-    in winter you store *cold* water in a shallow aquifer (a separate, shallow
-    set of wells), then in summer you pull that cold back up to cool the
-    district. It's like charging a "cold battery" in winter to spend in summer.
-    An electric heat pump in chiller mode trims the hottest summer days.
+We do not just assume the load-hours: an **8,760-hour dispatch simulation** builds an
+hourly Utrecht demand year and dispatches the supply stack. It shows that geothermal
+sized to the full 10 MWth peak runs at only ~3,170 full-load hours (poor utilisation),
+while **baseloading ~one doublet (~5 MWth) reaches ~6,000 hours at >90 % coverage** —
+so the 6,000-hour assumption holds *only* under baseload operation, which is exactly
+how Design A runs the geothermal and trims with heat pumps.
 
-- **Design B (the contrast): geothermal + absorption chiller.**
-  - An **absorption chiller** is a machine that makes *cold* by *burning heat*
-    (counter-intuitive, but real — it uses a lithium-bromide/water chemistry
-    cycle). To make 5 MWth of cooling it needs about **7 MWth of driving heat**.
+**Cooling is sized probabilistically.** A single ATES well pair delivers an uncertain
+0.5–2.0 MWth, so we size off the *low* end: **6 pairs give a 99.8 % chance of meeting
+the 5 MWth demand** (4 pairs would meet it only 29 % of the time once you honour the
+uncertainty).
 
-**Why Design A wins — and I made sure it won honestly, not by rigging it:**
-1. **Cost:** once ATES is costed at the real Dutch range, Design A's cooling is
-   *cheaper* per unit (17.5 vs 23.2 €/GJ — see C.6).
-2. **It doesn't cannibalise our product:** Design B would divert ~7 MWth of heat
-   — heat we're trying to *sell* — just to make cold. On a project where heat is
-   already expensive, that's the wrong trade.
-3. **Physics:** an absorption chiller really wants ~85–95 °C driving heat. Our
-   reservoir is only **77 °C** — marginal-to-insufficient. That's a hard
-   engineering knock against Design B regardless of cost.
+**Why Design A wins — honestly:** (1) it does not divert ~7 MWth of *saleable* heat to
+make cold; (2) an absorption chiller wants 85–95 °C drive heat and our reservoir is
+77 °C — marginal; (3) on cost the two are a *wash* (cooling LCOE 23.0 vs 23.4 €/GJ
+once ATES is sized robustly). We deliberately do not claim a cost win the honest
+sizing does not support.
 
-## C.6 WS4 — Economics: the LCOE (`src/lcoe.py`, `src/build_lcoe_workbook.py`)
+## C.7 WS4 — Economics: the LCOE and beyond (`lcoe.py`, `lcoe_montecarlo.py`, `value_case.py`)
+**LCOE** is the financed, after-tax break-even price per unit of energy — not
+total-cost ÷ total-energy, but a number set by the 80/20 debt/equity split, loan
+interest, depreciation, tax and a 15 % required return. We **rebuilt the TNO
+spreadsheet's model in Python** and **gate** it: it must reproduce the workbook's
+**5.769 €/GJ** reference before we trust a single number of our own (a unit test locks
+this). We then extend it to cooling.
 
-**What is LCOE?** **Levelised Cost Of Energy** is the single most important number
-in energy economics. It answers: *"Over the whole life of the project, what is the
-break-even price we'd have to charge per unit of energy to pay back every cost —
-the drilling, the equipment, the maintenance, the loan interest, the tax — at the
-investors' required rate of return?"* It's quoted in **euros per gigajoule
-(€/GJ)** of heat or cold delivered. Lower = more competitive.
-
-Crucially, LCOE is **not** "total cost ÷ total energy". It's a *financed* number:
-the wells are paid for ~80% with a loan and ~20% with the investors' own money,
-the loan accrues interest, the kit is depreciated for tax, and future euros are
-discounted because money now is worth more than money later (we discount at the
-investors' 15% required return). All of that is baked in. That financing
-structure — not just the physics — is what sets the price.
-
-**What I built.**
-- I **rebuilt the TNO spreadsheet's entire financial model in Python**
-  (`src/lcoe.py`). Rebuilding it (instead of editing the spreadsheet) lets us run
-  hundreds of scenarios automatically and lets the bonus AI pipeline call it.
-- I **gated it against the original**: my code must reproduce the spreadsheet's
-  published answer of **5.769 €/GJ** to the third decimal before I trust it. It
-  does, exactly. A test (`tests/test_lcoe.py`) locks this so we can never break it
-  unnoticed.
-- I then **extended it to cooling** (ATES wells, chillers, the cooling
-  electricity) — the part the original spreadsheet can't do.
-- `build_lcoe_workbook.py` writes our deliverable spreadsheet
-  `data/processed/LCOE_hybrid.xlsx` with everything laid out (inputs, outputs,
-  Design A vs B, and year-by-year cash flows). The original `LCOE.xlsx` is never
-  touched.
-
-**The result (our headline economics):**
+**Result (headline):**
 
 | Quantity | Value |
 |----------|-------|
-| LCOE of **heat** | **11.7 €/GJ** (≈ 42 €/MWh) |
-| LCOE of **cooling** (Design A) | **17.5 €/GJ** |
-| Blended system LCOE | **12.5 €/GJ** |
-| Total capital cost | **~€19.9 million** (4 deep wells + surface kit) |
+| LCOE heat | **11.8 €/GJ** |
+| LCOE cooling (Design A) | **23.0 €/GJ** |
+| **Blended system LCOE** | **13.4 €/GJ** |
+| Total capital cost | **≈ €21.3 M** (4 deep wells + surface kit) |
 | TNO heat-only benchmark | 5.77 €/GJ |
 
-Our heat costs ~2× the Dutch benchmark — and we can explain *exactly* why: a
-cooler, less productive reservoir needs four wells for 10 MWth instead of two for
-13 MWth. That clean cause-and-effect from Challenge 1 → Challenge 2 is our edge.
+**An honest caveat we make explicit (load factor).** The 11.8 €/GJ is the
+*baseload* heat number — priced at 6,000 FLEQ, the utilisation geothermal needs to be
+economic. Our own dispatch (C.6) shows a comfort-only, peak-sized doublet sees just
+~3,170 FLEQ → ~21 €/GJ, which is exactly why we baseload the geothermal and trim peaks
+with heat pumps. Cooling is the same: 23.0 €/GJ at 2,000 served-hours, but ~63 €/GJ at
+the ~640 comfort-only hours. So we lead on the **blended** 13.4 €/GJ (robust — heat is
+~86–95 % of delivered energy) and treat load factor as the headline sensitivity, not a
+settled input.
 
-## C.7 WS4 — Sensitivity tornado (`src/tornado.py`)
+We go past the point estimate in two ways most entries will not:
+- **A probabilistic LCOE** (`lcoe_montecarlo.py`): propagating the bounded resource
+  *and* cost/market uncertainty gives heat **P10/P50/P90 ≈ 10.8 / 12.6 / 26.7 €/GJ**.
+  The heavy upper tail is the quantified cost of the resource under-delivering — the
+  financial case for **staged appraisal**.
+- **A Dutch SDE++ value case** (`value_case.py`): the scheme abates **~13 kt CO₂/yr**,
+  needs **~3.8 €/GJ** of SDE++ support (**~€63 per tonne CO₂** — the metric the
+  auction actually ranks on, well inside the fundable range), and clears the hurdle at
+  an **equity IRR ≈ 21 %** with the subsidy. Run the asset to a 30-year life and the
+  heat LCOE falls to ~10.7 €/GJ.
 
-**The idea.** Which assumptions actually matter? A **tornado chart** takes each
-input, swings it to a low and a high value, and draws how far the LCOE moves. The
-biggest bars (drawn at the top, making a tornado shape) are the things worth
-worrying about.
+## C.8 WS5 — Bonus AI workflow (`pipeline.py`, `ml_logs.py`)
+- **A one-command pipeline** (`python -m src.pipeline all`): raw LAS → cleaned logs →
+  petrophysics → Monte-Carlo MWth → dispatch → ML → hybrid LCOE + probabilistic LCOE
+  + value case. Reproducible from a clean install; reviewers can re-run it.
+- **Honest ML log-prediction:** we train LightGBM to predict the missing curves and
+  validate by **leave-one-well-out** cross-validation (the only honest measure of
+  generalisation to an unseen well). Cross-well R²: DTC **0.51** (usable), RHOB
+  **0.10**, NPHI **−0.20**. Our locked rule: where R² < 0.50 we **do not** trust the
+  prediction and fall back to the ThermoGIS value — so with one fully-logged well and
+  four distinct locations, we *prove* log-prediction is unreliable here rather than
+  quietly trusting it. The AI value is the validated screen and the runnable pipeline,
+  not a number we massage.
 
-**The result** (`figures/lcoe_tornado.png`): the LCOE is **heat-dominated**. The
-top drivers are **resource deliverability (MWth), heat load-hours, and drilling
-cost.** The cooling-side knobs (ATES cost, cooling efficiency) barely move the
-needle. Lesson for the team: getting the *subsurface* right matters far more than
-fine-tuning the cooling plant.
-
-## C.8 How it all connects
+## C.9 How it all connects
 
 ```
- raw LAS logs ─► WS1 clean+TVD ─► WS2 petrophysics ─► rock properties (φ, k, NTG)
-                                                              │
-                              ThermoGIS P90/P50/P10 ──────────┤
-                                                              ▼
-                                          WS3 Darcy flow + thermal power
-                                                              │
-                                                    WS4 Monte-Carlo MWth
-                                                              │
-                                  ┌───────────────────────────┤
-                                  ▼                           ▼
-                       WS4 Surface design A/B        WS4 LCOE (heat + cool)
-                                  └───────────┬───────────────┘
-                                              ▼
-                                        Tornado + LCOE_hybrid.xlsx
+ raw LAS ─► WS1 clean+TVD ─► WS2 petrophysics ─► rock properties (φ, k, NTG)
+                                                          │
+                          ThermoGIS P90/P50/P10 ──────────┤
+                                                          ▼
+                            WS3 Darcy flow + WS4 Monte-Carlo MWth (bounded, independent)
+                                                          │
+                            thermal breakthrough check ───┤
+                                                          ▼
+            ┌────────────────────────────────────────────┤
+            ▼                          ▼                  ▼
+  WS4 surface A/B + 8760-h     WS4 LCOE (heat+cool)   probabilistic LCOE + SDE++
+       dispatch sizing               │                     value case
+            └───────────────┬────────┴─────────────────────┘
+                            ▼
+                  tornado + LCOE_hybrid.xlsx + figures
 ```
 
 ---
 
-# Part D — The story we'll tell the judges
+# Part D — The story in five sentences
 
 1. **Four wells, one clear winner.** BLT-01 is thick, porous, permeable and warm
-   enough; the data says so three independent ways (ThermoGIS, our logs, our
-   flow model).
-2. **The resource is real but modest.** One doublet ≈ 5 MWth, so we honestly
-   need **two doublets** to meet the 10 MWth heating demand — and we put a
-   probability on it (≈50% chance of clearing 10 MWth, with the full P10–P90
-   range shown).
-3. **Cooling is sized in real numbers**, not waved away: ATES + heat pumps
-   (Design A), shown to beat the absorption-chiller alternative (Design B) on
-   cost, on not cannibalising heat sales, and on the physics of our 77 °C water.
-4. **Economics are benchmarked and honest:** blended LCOE ≈ 12.5 €/GJ, ~2× the
-   Dutch heat benchmark, and we explain precisely why (cooler reservoir → more
-   wells).
-5. **Everything is reproducible:** clean code, 39 passing tests, notebooks that
-   run top to bottom, and (soon) a one-command pipeline.
+   enough; the data says so three independent ways (ThermoGIS, our logs, our flow model).
+2. **The resource is real but modest.** One doublet ≈ 5 MWth, so two doublets are the
+   honest minimum — P50 13.2 MWth with a 62 % chance of clearing 10 MWth, the
+   optimistic tail bounded to a physical pump limit, and breakthrough ~177 years away.
+3. **Cooling is sized in real numbers** — 6 ATES well pairs for 99.8 % confidence —
+   and Design A beats the absorption alternative on keeping saleable heat and on the
+   physics of a 77 °C resource, with cost a wash.
+4. **The economics are benchmarked, honest, and bankable:** blended ≈ 13.4 €/GJ
+   (~2× the Dutch benchmark, explained precisely), reported as a distribution, and
+   fundable under SDE++ at ~€63/tCO₂ for a ~21 % equity IRR.
+5. **Everything is reproducible:** clean code, a green test suite, notebooks that run
+   top-to-bottom, and a one-command pipeline from raw LAS to hybrid LCOE.
 
 ---
 
-# Part E — What's still left to do (Days 4–5)
+# Part E — Why you can trust the numbers
 
-| # | Task | Status |
-|---|------|--------|
-| WS5.1 | **ML missing-log prediction** — train LightGBM on BLT-01 to predict the missing NPHI/DTC/RHOB curves on the other wells, with honest leave-one-well-out validation | not started |
-| WS5.2 | **`pipeline.py`** — one command-line tool that runs the whole flow end to end (ingest → petrophysics → resource → LCOE) | not started |
-| D2 | **Slide deck** (10–15 slides; outline already in `deliverables/deck_outline.md`) | outline only |
-| D4 | **Technical report** (outline in `deliverables/report_outline.md`) | outline only |
-| D3 | **3–5 min narrated video** | not started |
-| — | Team is **Vent Squad** — Fikayo, Ashinze, Ayomide, Sodiq and me. Still need each member's **SPE membership number** for the title slide | **SPE numbers needed** |
-| — | (Stretch) **Thermal-breakthrough check** — analytic estimate of how long until the injected cold water reaches the producer | optional |
+We built explicit checks so the work is verifiable rather than asserted:
+- **TNO LCOE gate:** our engine reproduces the published 5.769 €/GJ to six decimals
+  before any of our economics is trusted; a unit test fails if it ever drifts.
+- **ThermoGIS reconciliation:** our independent Darcy model reproduces the national
+  database's flow/power to ~1 %, and our petrophysics matches ThermoGIS at the anchor.
+- **Honest uncertainty:** split-lognormal that hits all three published points, a
+  physical pump cap on the optimistic tail, independent doublets, and a probabilistic
+  LCOE that carries the resource downside instead of quoting a single comfortable number.
+- **No vanity ML:** leave-one-well-out cross-validation with a documented fallback —
+  we report the model failing and fall back, rather than trusting an in-sample fit.
+- **A green, behaviour-specific test suite** locks every headline (the 5 MWth single
+  doublet, the independent two-doublet result, the bounded tail, the cooling adequacy,
+  the SDE++ consistency check). Run `python -m pytest` to see it pass.
 
 ---
 
-# Part F — Your tasks
+# Part F — Applicability to African geothermal
 
-I've matched tasks to backgrounds so each of us owns the part that fits our
-expertise. We're a few hours from the deadline, so move fast and keep commits
-small and clearly described. If an assumption looks off, flag it early — getting
-the inputs right is worth more than any late feature. Co-ordinate over the repo:
-open a GitHub issue or a pull request for anything you add or change.
-
-### F.1 — Fikayo (ML engineer, insurance background) → **own the ML workflow**
-
-You're the lead on the bonus AI track (WS5.1), the part that needs real ML craft.
-1. **Build the missing-log model.** Train a **LightGBM** regressor on BLT-01
-   (the only well with all curves) to predict the curves the other wells are
-   missing (NPHI, DTC, RHOB) from the curves they *do* have (GR, density, etc.).
-   The clean training table is already sitting in `data/processed/well_logs.parquet`.
-2. **Do the validation honestly — leave-one-well-out (LOO).** Train on three
-   wells, test on the fourth, rotate. Report the **cross-well R²** (how well it
-   predicts a well it never saw). This is the number judges trust; in-sample R²
-   is vanity.
-3. **Hyperparameter tuning.** This is your wheelhouse — tune learning rate, tree
-   depth, number of leaves, regularisation, etc. Document what you tried and why.
-4. **Define the fallback rule.** Where cross-well R² < 0.5 for a curve, we *don't*
-   trust the prediction — we fall back to the ThermoGIS deterministic value. Make
-   that rule explicit and write it into the report.
-5. Deliverable: `notebooks/05_ml_logs.ipynb` with the LOO-CV table, plus a short
-   write-up. (I'll wire your model into the pipeline.)
-
-### F.2 — Ashinze (ML engineer, chemical engineering background) → **simulation + economics**
-
-Your process-engineering background is perfect for the physics and economics —
-you own this layer.
-1. **Own the deliverability physics** (`src/deliverability.py`): the Darcy-law
-   flow model, the brine properties at 77 °C (viscosity, density, heat capacity)
-   and the thermal-power equation. Lock the drawdown assumption (currently
-   16.5 bar) to a value we can defend from NL precedent.
-2. **Own the LCOE financial model** (`src/lcoe.py`): the cash-flow logic
-   (depreciation, loan amortisation, tax, the 15 % discount). It must keep
-   reproducing the TNO workbook's 5.769 €/GJ — that gate is what proves it's right.
-3. **Tighten the surface-design assumptions** (`src/surface.py`, `src/lcoe.py`):
-   heat-pump COP (4.2), ATES cost (€0.7M/pair), cooling COP (10), and the
-   absorption-chiller behaviour at 77 °C. Pull any that look optimistic back to a
-   sourced figure.
-4. **Build the thermal-breakthrough estimate:** an analytic (Gringarten/Lauwerier)
-   estimate of how many years until the injected cold reaches the producer at
-   1.3 km spacing. A real addition to the risk section — own it end to end.
-
-### F.3 — Ayomide (data scientist / geophysics) → **geoscience lead, with me**
-
-You and I share the geoscience background, so we co-own the credibility of
-Challenge 1 — let's pair on it.
-1. **Own the petrophysics call** (`src/petrophysics.py`): confirm Larionov-older
-   Vshale is the right pick, and that the porosity calc (density, 2.65 g/cc
-   matrix) and the net cut-offs (Vsh ≤ 0.4, φ ≥ 0.08) are the defensible choices
-   for the Rotliegend.
-2. **Own the layer picks** (`src/lithostrat.py`): confirm the
-   Rotliegend/Slochteren interval is picked correctly in each well, especially the
-   messy JUT-01 (fault repeat + the feet/metre bug).
-3. **Own the depth referencing** (`src/mdtvd.py`) and the `target_lithologies.csv`
-   fix — these underpin every depth in the project.
-4. **Anchor us to literature:** pull a couple of public ThermoGIS/DINOloket
-   Rotliegend wells and confirm our per-well numbers sit in the real-world range.
-5. Build the **geoscience narrative** for the report and deck with me — it's 60 %
-   of the marks, so this is where we win or lose.
-
-### F.4 — Sodiq (petroleum & gas engineering) → **benchmarks + economic inputs**
-
-You own the external-data backbone — the brief explicitly *requires* us to
-document and cite the outside numbers we lean on, so this is a scored deliverable,
-not a side task.
-1. **Own the benchmark + citation list** for our key assumptions: Dutch Rotliegend
-   doublet **flow rates** (typically 100–300 m³/h), **drilling cost per metre**,
-   **ATES system costs**, heat-pump COPs. Every figure gets a cited source — this
-   list goes straight into the report's external-data appendix.
-2. **Own the economic inputs** in `LCOE_hybrid.xlsx`: confirm well cost,
-   surface-plant cost, electricity price and load-hours against industry figures.
-3. **Confirm the doublet design** (1.3 km spacing, ~2 km depth, 8.5" hole) lines
-   up with standard NL practice.
-4. Work with Ashinze (F.2) — you're both on the simulation + economics side.
-
-### F.5 — Me (Demilade), team lead → coordination + assembly
-
-I'll keep building (the WS5 ML model + the end-to-end pipeline next), pair with
-Ayomide on geoscience, then assemble the deck, report and video and integrate
-everyone's work. I still need everyone's **SPE membership number** for the title
-slide — please send them to me ASAP, they're the last thing blocking the deck.
-
-### F.6 — How to give feedback / contribute
-
-- Clone the repo (Part H), run the tests, run the notebooks.
-- Found a problem or a better assumption? Open a **GitHub issue** describing it,
-  or message me. If you can code the fix, branch off `main`, keep commits small
-  and clearly described, and open a pull request.
-- **Authorship note:** all commits and written work are attributed to us as a
-  team — please don't add any AI/tool co-author tags to commits.
+This is a Dutch case study, but the **method** is the transferable asset, not the
+numbers. The probabilistic resource workflow, the database-reconciliation discipline,
+the financed LCOE engine and the one-command AI pipeline are geology-agnostic. What
+does *not* transfer directly: most African geothermal is **high-enthalpy volcanic**
+along the East African Rift (Kenya Olkaria/Menengai, Ethiopia Aluto/Corbetti),
+developed for *power* — a different model from our low-enthalpy direct-use scheme.
+Where *this* template genuinely fits: **North African / intracratonic sedimentary
+basins** (Algeria, Tunisia, Egypt — direct-use heat) and, more relevantly for a
+cooling-hungry continent, the **hybrid-cooling** half of our design for
+cooling-dominated African cities. (Full discussion in §9 of the report.)
 
 ---
 
 # Part G — Plain-English glossary
 
-- **Aquifer:** an underground layer of rock that holds and transmits water.
-- **ATES (Aquifer Thermal Energy Storage):** storing heat or cold in a shallow
-  aquifer between seasons — "charge a cold battery in winter, use it in summer".
-- **Absorption chiller:** a machine that makes cooling by consuming heat (via a
-  lithium-bromide/water cycle) instead of much electricity.
-- **Capex / Opex:** capital expenditure (one-off build cost) / operating
-  expenditure (ongoing running cost).
-- **COP (Coefficient of Performance):** for a heat pump, units of heat (or cold)
-  moved per unit of electricity used. COP 4 = 4× as efficient as a resistance
-  heater.
-- **Darcy's law:** the equation for how fast fluid flows through porous rock under
-  a pressure difference.
-- **Deviation survey / well path:** the record of a well's angle and direction
-  with depth, used to convert MD to TVD.
+- **ATES (Aquifer Thermal Energy Storage):** storing heat/cold in a shallow aquifer
+  between seasons — "charge a cold battery in winter, use it in summer."
+- **Absorption chiller:** a machine that makes cooling by consuming heat (LiBr/H₂O
+  cycle) rather than much electricity; wants ~85–95 °C drive heat.
+- **Capex / Opex:** one-off build cost / ongoing running cost.
+- **COP (Coefficient of Performance):** units of heat (or cold) moved per unit of
+  electricity used; COP 4 = 4× a resistance heater.
+- **Darcy's law:** the equation for fluid flow through porous rock under a pressure
+  difference.
+- **Dispatch simulation:** an hour-by-hour (8,760 h) match of supply to demand, used
+  here to *derive* the load-hours instead of assuming them.
 - **Doublet:** a producer + injector well pair forming the geothermal loop.
-- **Drawdown:** the pressure difference we apply to pull water from the rock
-  (measured in bar).
-- **ΔT (delta-T):** the temperature drop we extract from the water at the surface
-  (production temp − reinjection temp).
-- **Heat exchanger:** a device that transfers heat between two fluids without
-  mixing them (like a car radiator).
-- **Heat pump:** a machine that moves heat from one place to another using
-  electricity; run forwards it heats, reversed it cools.
-- **LAS file:** the standard text file format for well-log data.
-- **LCOE (Levelised Cost Of Energy):** the lifetime break-even price per unit of
-  energy delivered, after financing, tax and discounting; €/GJ here.
-- **Lithostratigraphy:** the named sequence of rock layers with depth.
-- **MD (Measured Depth):** distance measured *along* the (curved) borehole.
-- **Minimum-curvature method:** the standard maths for tracing a well's true 3-D
-  path from the deviation survey.
-- **Monte-Carlo simulation:** estimating an uncertain result by random sampling
-  many times and looking at the distribution of outcomes.
-- **MWth / MWe:** megawatts of *thermal* power (heat) / *electric* power.
-- **Net-to-Gross (NTG):** the fraction of a rock layer that is good-quality
-  reservoir.
+- **Drawdown:** the pressure difference applied to pull water from the rock (bar).
+- **ΔT (delta-T):** the temperature drop extracted at the surface (production −
+  reinjection temperature).
+- **FLEQ (full-load-equivalent) hours:** annual energy ÷ peak capacity — how many
+  hours per year the plant effectively runs flat-out.
+- **Gringarten-Sauty:** the standard analytic result for doublet thermal breakthrough.
+- **LCOE (Levelised Cost Of Energy):** the financed, after-tax break-even price per
+  unit of energy delivered, after financing, tax and discounting; €/GJ here.
+- **MD / TVD:** measured depth along the borehole / true vertical depth below surface.
+- **Minimum curvature:** the standard maths for tracing a well's 3-D path from the
+  deviation survey.
+- **Monte-Carlo simulation:** estimating an uncertain result by random sampling many
+  times and reading the distribution of outcomes.
+- **Net-to-Gross (NTG):** the fraction of a rock layer that is good-quality reservoir.
 - **P90 / P50 / P10:** pessimistic / most-likely / optimistic estimates from an
   uncertainty range.
-- **Permeability (k, millidarcies mD):** how easily fluid flows *through* the
-  rock. The make-or-break property.
-- **Petrophysics:** converting well-log measurements into rock properties.
-- **Porosity (φ):** the fraction of the rock that is empty, fluid-fillable pore
-  space.
-- **Reservoir:** a rock body that can store and yield fluids (here, hot water).
-- **Rotliegend / Slochteren Formation:** our target ~290-million-year-old
-  sandstone reservoir.
-- **Thermal breakthrough:** when injected cold water reaches the producer well and
-  starts cooling it — a long-term risk to manage via well spacing.
+- **Permeability (k, millidarcies):** how easily fluid flows *through* the rock — the
+  make-or-break property.
+- **Porosity (φ):** the fraction of the rock that is empty, fluid-fillable pore space.
+- **Probabilistic LCOE:** the LCOE reported as a P10/P50/P90 distribution rather than a
+  single number, by propagating resource and cost uncertainty.
+- **Rotliegend / Slochteren Formation:** our target ~290-Ma sandstone reservoir.
+- **SDE++:** the Dutch subsidy scheme that pays the gap between a project's cost price
+  and the market value of the energy, ranked by subsidy per tonne of CO₂ avoided.
+- **Split-lognormal:** a two-piece lognormal that reproduces all three of a P90/P50/P10
+  band exactly (a single-sigma fit cannot).
+- **Thermal breakthrough:** when injected cold reaches the producer and starts cooling
+  it — a long-term risk managed by well spacing.
 - **ThermoGIS:** the Dutch national geothermal resource database (TNO).
-- **Transmissivity (k·h, Darcy-metres Dm):** permeability × layer thickness — the
-  rock's overall flow capacity.
-- **TVD (True Vertical Depth):** straight-down depth below surface.
-- **Vshale (Vsh):** the fraction of the rock that is shale/clay (computed from
-  gamma ray); high Vshale = poor reservoir.
+- **Transmissivity (k·h, Darcy-metres):** permeability × layer thickness — the rock's
+  overall flow capacity.
+- **Vshale (Vsh):** the shale/clay fraction (from gamma ray); high Vsh = poor reservoir.
 
 ---
 
-# Part H — How to set up and run the project
+# Part H — How to reproduce everything
 
 ```bash
-# 1. Get the code
+# 1. Get the code and create the environment (Python 3.9–3.12)
 git clone https://github.com/DEMILADE07/Vent_Squad_Geothermal_solution.git
 cd Vent_Squad_Geothermal_solution
-
-# 2. Create the Python environment (Python 3.12) and install pinned deps
 python -m venv .venv
-.venv\Scripts\activate          # Windows
+source .venv/bin/activate          # macOS / Linux
+# .venv\Scripts\activate           # Windows (PowerShell / cmd)
 pip install -r requirements.txt
 
-# 3. Prove everything works (should be ~39 passing)
+# 2. Prove it works — the full test suite (bonus-ML tests self-skip if libomp is absent)
 python -m pytest -q
 
-# 4. Rebuild the processed data from raw (optional; outputs are gitignored)
-python -m src.build_processed
+# 3. Regenerate EVERYTHING the report and deck use, in one command
+#    (processed data + all figures + LCOE workbook + executed notebooks)
+python -m src.build_all
 
-# 5. Run the analysis notebooks (top to bottom)
-jupyter lab                     # then open notebooks/01_eda.ipynb and 04_lcoe.ipynb
+# 4. Or run the analysis end to end as a pipeline
+python -m src.pipeline all          # ingest → petro → predict → dispatch → ml → lcoe
 
-# 6. Regenerate the hybrid LCOE workbook and the tornado figure
-python -m src.build_lcoe_workbook        # -> data/processed/LCOE_hybrid.xlsx
-python -m src.tornado                     # -> figures/lcoe_tornado.png
+# 5. Explore the narrative notebooks
+jupyter lab notebooks/              # 01_eda · 03_resource_montecarlo · 04_lcoe · 05_ml_logs
 ```
 
-If `git clone` asks for a login you don't have, ping me — I'll add you as a
-collaborator on the repo.
+**Bonus-ML note:** the missing-log prediction uses LightGBM, whose compiled backend
+needs the OpenMP runtime. Install it once if you want to run the ML stage — macOS
+`brew install libomp`, Debian/Ubuntu `sudo apt-get install libgomp1`. Everything else
+(every headline resource and economics number) reproduces without it.
 
----
-
-*Questions about any of this? Ask me. Nothing here is too basic to ask about —
-this document exists precisely so we're all on the same page.*
-— Demilade
+*Questions about any of this are welcome — this document exists precisely so the
+reasoning behind every number is open and checkable.*
+— Team Vent Squad

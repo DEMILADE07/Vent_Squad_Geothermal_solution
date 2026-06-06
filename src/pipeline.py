@@ -8,8 +8,9 @@ consumes:
     python -m src.pipeline ingest     # raw LAS  -> well_logs.parquet (+ targets)
     python -m src.pipeline petro      #           -> rotliegend_summary.csv (+ deliverability)
     python -m src.pipeline predict    #           -> mc_mwth.parquet (Monte-Carlo MWth)
+    python -m src.pipeline dispatch   #           -> dispatch_summary.csv (8760-h load-hours)
     python -m src.pipeline ml         #           -> ml_loo_cv.csv + ml_log_predictions.parquet
-    python -m src.pipeline lcoe       #           -> LCOE_hybrid.xlsx
+    python -m src.pipeline lcoe       #           -> LCOE_hybrid.xlsx + lcoe_mc_summary.csv (P10/P50/P90)
     python -m src.pipeline all        # run every stage in order
 
 Every stage is a plain function returning the paths it wrote, so the steps are
@@ -32,11 +33,17 @@ from src.lithostrat import rotliegend_pick
 from src.montecarlo import simulate_all, summarise
 from src.paths import (
     DATA_PROCESSED,
+    DISPATCH_SIZING_CSV,
+    DISPATCH_SUMMARY_CSV,
+    FIGURES,
     LCOE_HYBRID,
+    LCOE_MC_HURDLE_CSV,
+    LCOE_MC_SUMMARY_CSV,
     MC_MWTH_PARQUET,
     ML_LOO_CV_CSV,
     ML_PREDICTIONS_PARQUET,
     ROTLIEGEND_SUMMARY_CSV,
+    VALUE_CASE_CSV,
     WELL_LOGS_PARQUET,
 )
 from src.petrophysics import add_petrophysics, rotliegend_summary
@@ -143,14 +150,73 @@ def stage_ml() -> dict:
     return {"cv": ML_LOO_CV_CSV, "predictions": ML_PREDICTIONS_PARQUET}
 
 
-def stage_lcoe() -> dict:
-    """Resource + design -> extended hybrid heating+cooling LCOE workbook."""
+def stage_dispatch() -> dict:
+    """8760-h hourly dispatch -> derived load-hours, ATES sizing, baseload trade."""
+    _ensure_out()
+    from src.dispatch import (
+        lcoe_at_simulated_loadhours,
+        plot_dispatch,
+        simulate_dispatch,
+        sizing_table,
+    )
+
+    summary = simulate_dispatch()
+    sizing = sizing_table(capacities=(5.06, 6.0, 7.5, 8.5, 10.0))
+    lc = lcoe_at_simulated_loadhours()
+    pd.DataFrame([{**summary, **lc}]).to_csv(DISPATCH_SUMMARY_CSV, index=False)
+    sizing.to_csv(DISPATCH_SIZING_CSV, index=False)
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    plot_dispatch(save_path=FIGURES / "dispatch_load_duration.png")
+    _df_table(sizing, "Geothermal baseload sizing trade (FLEQ rises toward baseload)")
+    console.print(f"[green]wrote[/] {DISPATCH_SUMMARY_CSV.name}, {DISPATCH_SIZING_CSV.name}, "
+                  "dispatch_load_duration.png")
+    console.print(f"[dim]Simulated geo FLEQ {lc['fleq_simulated_h']:.0f} h (peak-sized) vs "
+                  f"assumed {lc['fleq_assumed_h']:.0f} h -> heat LCOE "
+                  f"{lc['lcoe_heat_simulated']} vs {lc['lcoe_heat_assumed']} EUR/GJ.[/]")
+    return {"dispatch": DISPATCH_SUMMARY_CSV, "sizing": DISPATCH_SIZING_CSV}
+
+
+def stage_lcoe(draws: int = 10_000) -> dict:
+    """Resource + design -> hybrid LCOE workbook + probabilistic LCOE distribution.
+
+    Two products: the deterministic extended workbook (LCOE_hybrid.xlsx) and a
+    Monte-Carlo LCOE that propagates the bounded resource + cost uncertainty to a
+    P10/P50/P90 band (lcoe_mc_summary.csv) and a hurdle-rate scenario table.
+    """
     _ensure_out()
     from src.build_lcoe_workbook import build  # local import; heavy (openpyxl styling)
+    from src.lcoe_montecarlo import (
+        lcoe_scenarios_by_hurdle,
+        plot_lcoe_distribution,
+        simulate_lcoe,
+        summarise_lcoe,
+    )
 
     path = build()
     console.print(f"[green]wrote[/] {LCOE_HYBRID.name}")
-    return {"lcoe": path}
+
+    mc = simulate_lcoe(n=draws)
+    summary = summarise_lcoe(mc)
+    summary.to_csv(LCOE_MC_SUMMARY_CSV, index=False)
+    hurdle = lcoe_scenarios_by_hurdle(n=max(draws // 2, 2_000))
+    hurdle.to_csv(LCOE_MC_HURDLE_CSV, index=False)
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    for col in ("lcoe_heat", "lcoe_blended"):
+        plot_lcoe_distribution(mc, col, save_path=FIGURES / f"{col}_distribution.png")
+    _df_table(summary, "Probabilistic LCOE — P10/P50/P90 (EUR/GJ)")
+    console.print(f"[green]wrote[/] {LCOE_MC_SUMMARY_CSV.name}, "
+                  f"{LCOE_MC_HURDLE_CSV.name} and lcoe_*_distribution.png")
+
+    from src.value_case import value_summary
+    val = value_summary()
+    pd.DataFrame([val]).to_csv(VALUE_CASE_CSV, index=False)
+    console.print(f"[green]wrote[/] {VALUE_CASE_CSV.name}")
+    console.print(f"[dim]Value case: {val['co2_net_abated_t_yr']:.0f} t CO2/yr abated; "
+                  f"SDE++ {val['sde_subsidy_eur_gj']} EUR/GJ "
+                  f"({val['sde_abatement_cost_eur_t']} EUR/t CO2); "
+                  f"equity IRR {val['equity_irr_with_sde']:.0%} with SDE++.[/]")
+    return {"lcoe": path, "lcoe_mc": LCOE_MC_SUMMARY_CSV,
+            "lcoe_hurdle": LCOE_MC_HURDLE_CSV, "value_case": VALUE_CASE_CSV}
 
 
 # ---------------------------------------------------------------------------
@@ -186,21 +252,36 @@ def ml() -> None:
 
 
 @app.command()
-def lcoe() -> None:
-    """Extended hybrid heating+cooling LCOE workbook (LCOE_hybrid.xlsx)."""
+def dispatch() -> None:
+    """8760-h dispatch: derive heat/cool load-hours, ATES sizing, baseload trade."""
+    _rule("dispatch (8760-h hourly)")
+    stage_dispatch()
+
+
+@app.command()
+def lcoe(draws: int = typer.Option(10_000, help="Probabilistic-LCOE Monte-Carlo draws")) -> None:
+    """Hybrid LCOE workbook + probabilistic LCOE (P10/P50/P90, CDF, hurdle scenarios)."""
     _rule("lcoe")
-    stage_lcoe()
+    stage_lcoe(draws=draws)
 
 
 @app.command()
 def all(draws: int = typer.Option(10_000, help="Monte-Carlo draws per well")) -> None:
-    """Run the whole pipeline end to end: ingest -> petro -> predict -> ml -> lcoe."""
+    """Run the whole pipeline end to end: ingest -> petro -> predict -> dispatch -> ml -> lcoe."""
     _rule("full pipeline")
     stage_ingest()
     stage_petro()
     stage_predict(n=draws)
-    stage_ml()
-    stage_lcoe()
+    stage_dispatch()
+    try:
+        stage_ml()
+    except RuntimeError as exc:
+        # The bonus ML stage needs LightGBM/libomp; if it is missing we skip it
+        # and continue. Nothing downstream depends on it — every predicted curve
+        # falls back to the ThermoGIS deterministic value by design (R^2 < 0.50),
+        # so the resource and LCOE results are unchanged.
+        console.print(f"[yellow]ml stage skipped[/] — {exc}")
+    stage_lcoe(draws=draws)
     console.print("\n[bold green]Pipeline complete.[/] All artefacts in "
                   f"{DATA_PROCESSED}")
 

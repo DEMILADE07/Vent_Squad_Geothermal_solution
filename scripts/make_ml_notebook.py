@@ -13,7 +13,7 @@ md = lambda s: cells.append(nbf.v4.new_markdown_cell(s))
 code = lambda s: cells.append(nbf.v4.new_code_cell(s))
 
 md(r"""# 05 - Bonus AI Track: ML Missing-Log Prediction
-**SPE Africa Geothermal Datathon 2026 - Bonus track (WS5.1)**
+**SPE Africa Geothermal Datathon 2026 - Bonus track - Team Vent Squad**
 
 Only **BLT-01** carries the full curve suite; the other three wells are missing
 curves the petrophysics would like (NPHI on EVD-01/JUT-01, a dense RHOB on

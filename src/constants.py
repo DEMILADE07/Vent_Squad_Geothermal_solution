@@ -63,6 +63,12 @@ WATER_DENSITY_KG_M3 = 1000.0     # close enough at this T and salinity
 WATER_HEAT_CAPACITY_J_KGK = 4180.0
 WATER_VISCOSITY_PA_S = 3.5e-4    # ~77 degC, fresh-ish brine
 
+# Rock matrix thermal properties (TNO Input_Output!K7,K8 — Rho_rock, Cp_rock).
+# Used for the bulk volumetric heat capacity that retards the thermal front.
+ROCK_DENSITY_KG_M3 = 2700.0
+ROCK_HEAT_CAPACITY_J_KGK = 1000.0
+SECONDS_PER_YEAR = 31_557_600.0  # 365.25 d, matches TNO Input_Output!K20
+
 
 # ---------------------------------------------------------------------------
 # Doublet design defaults (NL Rotliegend precedent)
@@ -89,10 +95,21 @@ RETURN_TEMP_DEFAULT_C = 42.0      # legacy DT=35 sensitivity anchor
 # Surface design defaults
 # ---------------------------------------------------------------------------
 
-HEAT_PUMP_COP = 4.2
-ABSORPTION_CHILLER_COP_TH = 0.7
-ATES_ROUND_TRIP_EFFICIENCY = 0.70
-ATES_THROUGHPUT_MWTH_PER_PAIR = 1.5  # midpoint of 0.5-2 MWth range
+# Surface-equipment performance. Sources are cited in the report's external-data
+# appendix; values are the conservative end of each published range, not the best case.
+HEAT_PUMP_COP = 4.2                  # electric HP, ~70 C delivery (IEA HPT Annex 47)
+ABSORPTION_CHILLER_COP_TH = 0.7      # single-effect LiBr/H2O thermal COP (ASHRAE)
+ABSORPTION_DRIVE_TEMP_MIN_C = 85.0   # single-effect needs ~85-95 C drive heat;
+ABSORPTION_DRIVE_TEMP_MAX_C = 95.0   # our 77 C resource is below this -> Design B knock
+ATES_ROUND_TRIP_EFFICIENCY = 0.70    # seasonal recovery efficiency (Fleuchaus 2018)
+
+# ATES cooling capacity per warm/cold well pair (MWth). NL field range ~0.5-2.0;
+# we model it triangular(min, mode, max) and size the pair count off the low end
+# rather than the midpoint (Bloemendal & Hartog 2018; Fleuchaus et al. 2018).
+ATES_THROUGHPUT_MIN_MWTH_PER_PAIR = 0.5
+ATES_THROUGHPUT_MODE_MWTH_PER_PAIR = 1.0
+ATES_THROUGHPUT_MAX_MWTH_PER_PAIR = 2.0
+ATES_THROUGHPUT_MWTH_PER_PAIR = ATES_THROUGHPUT_MODE_MWTH_PER_PAIR  # conservative central
 
 DEMAND_HEATING_MWTH = 10.0
 DEMAND_COOLING_MWTH = 5.0

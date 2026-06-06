@@ -1,10 +1,11 @@
-# Vent Squad — Slide Deck (content draft, 12 slides)
+# Vent Squad — Slide Deck (content, 13 slides)
 
 > Board-memo structure: **problem → recommendation → evidence → risks → ask.**
 > One `##` per slide. Each slide has bullets, a **Speaker note**, and the **Figure**
-> to drop in. Convert to PowerPoint / Google Slides; add the title-page SPE numbers
-> and paste the named figures from `figures/`. Numbers are final (from the committed
-> code); only the SPE IDs are outstanding.
+> to drop in. A ready-to-present version lives in `deliverables/slides/` (open the
+> HTML, present in-browser, export to PDF as `Team_VentSquad_PPT_V1.pdf`). Numbers
+> are final (from the committed code, `python -m src.build_all`); only the SPE IDs
+> remain to add to the title slide.
 
 ---
 
@@ -13,7 +14,7 @@
 - **Utrecht District Geothermal Heating & Cooling — A Hybrid Doublet Solution**
 - **Team Vent Squad** — Demilade Kolawole-Jacobs (lead), Fikayo, Ashinze, Ayomide, Sodiq
 - **SPE membership numbers:** `____` (one per member — mandatory per brief)
-- SPE Africa Geothermal Datathon 2026 · 2026-06-02 · v1
+- SPE Africa Geothermal Datathon 2026 · 2026-06-06 · v1
 
 **Speaker note:** "We're Vent Squad. Our question was simple — can a Rotliegend
 geothermal scheme heat *and* cool an Utrecht district? — and our answer is yes,
@@ -38,14 +39,15 @@ surface. The precedent is real — we're not inventing a play, we're siting one.
 - **Site a 2-doublet (4-well) scheme near BLT-01**
 - **Design A: geothermal + ATES + electric heat pumps**
 - Headline numbers:
-  - Heating P50: **10.12 MWth** (P90 2.0 / P10 53.9) · **P(≥10 MWth) = 50 %**
-  - Cooling delivered: **5 MWth**
-  - LCOE heat **11.7 €/GJ** · cool **17.5 €/GJ** · blended **12.5 €/GJ**
-  - Total capex **≈ €19.9 M**
+  - Heating P50: **13.2 MWth** (P90 3.8 / P10 23.1) · **P(≥10 MWth) = 62 %**
+  - Cooling delivered: **5 MWth** (6 ATES pairs, 99.8 % adequacy)
+  - LCOE heat **11.8 €/GJ** · cool **23.0 €/GJ** · blended **13.4 €/GJ**
+  - Total capex **≈ €21.3 M** · equity **IRR ≈ 21 %** with SDE++
 
 **Speaker note:** Lead with the answer, board-memo style. The honest catch: it's
-*two* doublets, not one, and a 50 % probability — we put a number on the
-uncertainty instead of hiding it.
+*two* doublets, not one. Two independent doublets clear 10 MWth 62 % of the time
+with real headroom — we put a number on the uncertainty instead of hiding it, and
+we size the plant to the 10 MWth demand, not the 13 MWth resource surplus.
 
 ---
 
@@ -56,10 +58,14 @@ uncertainty instead of hiding it.
   - JUT-01 — 125 / 11 / 40 / 72 / 4.8 — viable backup
   - PKP-01 — 60 / 9 / 1 / 88 / 0.1 — hot but **too tight to flow**
   - EVD-01 — 76 / 9 / 6 / 72 / 0.4 — weakest all round
-- Our independent petrophysics agrees: BLT-01 **NTG 0.93**, the best by far
+- Our independent petrophysics agrees at the anchor: BLT-01 **NTG 0.93** vs
+  ThermoGIS 0.98 — the best by far (we apply stricter log cut-offs at the weaker
+  wells, so our estimate is the more conservative; details in the report)
 
 **Speaker note:** BLT-01 dominates on k·h, the make-or-break flow term. PKP is hot
-but tight; EVD weak; JUT structurally complex. One well is the obvious anchor.
+but tight; EVD weak; JUT structurally complex. One well is the obvious anchor. Our
+log-based NTG matches ThermoGIS at BLT and is deliberately stricter elsewhere — we
+flag that honestly rather than claim a false "consistent."
 
 **Figure:** ThermoGIS comparison table (from §3.3 of the report).
 
@@ -82,13 +88,16 @@ but tight; EVD weak; JUT structurally complex. One well is the obvious anchor.
 
 ## Slide 6 — Resource: probabilistic MWth
 
-- Monte-Carlo from ThermoGIS P90/P50/P10 — **10,000 draws**
-- 1 doublet: P50 **5.06 MWth**, only **31 %** chance of clearing 10 MWth
-- **2 doublets: P50 10.12 MWth, 50 % chance** → the design basis
-- Darcy model reconciled to ThermoGIS flow/power to **~1 %** (16.5 bar, 35 °C reinjection)
+- Monte-Carlo from ThermoGIS P90/P50/P10 — **10,000 draws**, split-lognormal fit
+  (hits all 3 points), tail **bounded at a 300 m³/h pump ceiling**
+- 1 doublet: P50 **5.05 MWth**, only **29 %** chance of clearing 10 MWth
+- **2 independent doublets: P50 13.2 MWth, 62 % chance** → the design basis
+- Darcy reconciled to ThermoGIS flow/power to **~1 %**; thermal breakthrough **~177 yr ≫ life**
 
 **Speaker note:** This is our differentiator — a *distribution*, not a single
-number. The 50 % is deliberately honest; most teams will quote a point estimate.
+number, and an honest one: we bound the optimistic tail at a physical pump ceiling
+(no 77 °C doublet beats the ~13 MWth Dutch benchmark) and treat the two doublets as
+independent. 62 % chance of clearing 10 MWth with headroom; one doublet falls short.
 
 **Figure:** `figures/mc_mwth_blt.png` + inset `figures/deliverability_reconciliation.png`.
 
@@ -98,13 +107,19 @@ number. The 50 % is deliberately honest; most teams will quote a point estimate.
 
 - Doublets → plate-and-frame HX → district hot loop → heat pump (COP 4.2) trim
 - Cooling from seasonal **ATES** — cold banked in winter, spent in summer
-- **4 ATES well pairs** for 5 MWth (0.5–2 MWth each, ~70 % round-trip)
-- Heating ~6,000 h/yr · cooling ~2,000 h/yr (summer-peaky → sized off August peak)
+- **6 ATES well pairs** for 5 MWth — per-pair capacity is uncertain (0.5–2 MWth),
+  so we size off the *low* end: **P(supply ≥ 5 MWth) = 99.8 %**, P90 supply 6.0 MWth
+- Load-hours **derived from an 8,760-h dispatch sim**, not assumed: geothermal must
+  run **baseload** (~6,000 FLEQ h) — peak-sizing it wastes the doublet (~3,170 h)
+- Cooling ~2,000 h/yr (summer-peaky → sized off August peak)
 
 **Speaker note:** ATES is the clever bit — a seasonal "cold battery." We size off
-the peak, not the average, which is where most cooling designs go wrong.
+the peak *and* the low-throughput end: 4 pairs would meet demand only 29 % of the
+time once you honour the uncertainty, so we carry 6. And our 6,000 load-hours aren't
+assumed — an hourly dispatch sim shows they only hold if the geothermal runs
+baseload with heat-pump trim, which is exactly our design.
 
-**Figure:** process-flow diagram (to draw) — doublet → HX → hot loop → HP + ATES.
+**Figure:** `figures/design_a_schematic.png` — doublet → HX → hot loop → HP + ATES.
 
 ---
 
@@ -112,12 +127,13 @@ the peak, not the average, which is where most cooling designs go wrong.
 
 - LiBr/H₂O absorption chiller driven by geothermal heat (thermal COP ≈ 0.7)
 - Needs **≈ 7.1 MWth of drive heat** to make 5 MWth cold — heat we'd rather sell
-- Cooling LCOE **23.2 €/GJ** vs Design A's **17.5 €/GJ**
-- Wants 85–95 °C drive heat; our reservoir is **77 °C** → marginal
+- Cooling LCOE **23.4 €/GJ** vs Design A's **23.0 €/GJ** — essentially a wash on cost
+- Wants 85–95 °C drive heat; our reservoir is **77 °C** → marginal-to-insufficient
 
-**Speaker note:** We carry Design B as a real contrast, not a strawman. It's
-lower-capex but loses on cost-per-GJ, cannibalises heat sales, and fights the
-thermodynamics of a 77 °C resource. That's why A wins.
+**Speaker note:** We carry Design B as a real contrast, not a strawman. On cost
+it's a tie once ATES is sized honestly — so A wins on the two things that aren't
+close: it keeps the ~7 MWth of heat we're in business to sell, and it actually
+works at 77 °C, where an absorption chiller is starved of drive heat.
 
 **Figure:** Design A vs B comparison table (from §4.4).
 
@@ -125,14 +141,18 @@ thermodynamics of a 77 °C resource. That's why A wins.
 
 ## Slide 9 — Economics: extended LCOE
 
-- LCOE **heat 11.7 / cool 17.5 / blended 12.5 €/GJ** — re-derived from the TNO workbook
+- LCOE **heat 11.8 / cool 23.0 / blended 13.4 €/GJ** — re-derived from the TNO workbook
 - Engine **validated to 5.769 €/GJ** against the stock TNO reference before we trust it
-- **Tornado:** LCOE is heat-dominated — top drivers are MWth, heat load-hours, drilling €/m
+- **As a distribution, not a point:** heat LCOE **P10/P50/P90 = 10.8 / 12.6 / 26.7 €/GJ** —
+  the upper tail is the quantified cost of the resource under-delivering (→ stage the appraisal)
+- **Fundable:** SDE++ subsidy **≈ 3.8 €/GJ (~€63/tCO₂**, ~13 kt CO₂/yr abated) → **equity IRR ≈ 21 %**
+- **Tornado:** heat-dominated — top drivers are heat delivered (MWth), load-hours, drilling €/m
 - ~2× the Dutch heat-only benchmark (5.77 €/GJ) — and we explain exactly why
 
-**Speaker note:** The 2× gap is the punchline of the whole story: a cooler, less
-productive reservoir needs 4 wells for 10 MWth where the benchmark needs 2 for 13.
-Cause and effect, Challenge 1 → Challenge 2.
+**Speaker note:** The 2× gap is the punchline: a cooler, less productive reservoir
+needs 4 wells for 10 MWth where the benchmark needs 2 for 13. And we go past the
+point estimate — a probabilistic LCOE band and an SDE++ value case that clears the
+hurdle at €63/tCO₂. Cause and effect, Challenge 1 → Challenge 2 → bankability.
 
 **Figure:** `figures/lcoe_tornado.png`.
 
@@ -153,10 +173,31 @@ number we quietly trust. The pipeline is the runnable artefact reviewers can re-
 
 ---
 
-## Slide 11 — Risks, assumptions, what we did **not** do
+## Slide 11 — Does this travel? Applicability to African geothermal
 
-- Top risks: **thermal breakthrough** (1.3 km spacing), **ATES sizing** (peak-based),
-  **drilling-cost volatility** (top-3 LCOE driver)
+- **The method transfers, the numbers don't.** Our probabilistic resource workflow,
+  database-reconciliation discipline, financed LCOE engine and one-command AI
+  pipeline are geology-agnostic — they slot onto any geothermal project.
+- **Not a template for the Rift:** East African geothermal (Kenya Olkaria/Menengai,
+  Ethiopia Aluto/Corbetti) is **high-enthalpy volcanic → power**, a different model.
+- **Where *this* fits in Africa:** North African / intracratonic **sedimentary**
+  basins (Algeria, Tunisia, Egypt — direct-use heat) and, more relevantly, the
+  **hybrid-cooling** half of our design for cooling-dominated African cities.
+
+**Speaker note:** We're honest that a 77 °C Dutch sandstone doublet isn't a Rift
+template. But the transferable asset is the workflow — and the cooling design is
+arguably *more* relevant in a hot, cooling-hungry continent than the heating is.
+
+**Figure:** none needed — or a small "method vs. setting" two-column graphic.
+
+---
+
+## Slide 12 — Risks, assumptions, what we did **not** do
+
+- **Thermal breakthrough quantified** (Gringarten-Sauty): t_bt **≈ 177 yr ≫ 30-yr life**
+  on a homogeneous estimate (heterogeneous transient sim is next-step) → wide margin
+- Other top risks: **ATES throughput** (probabilised 0.5–2 MWth/pair; 6 pairs →
+  99.8 % adequacy), **drilling-cost volatility**; resource downside carried in the LCOE tail
 - Key assumptions: reinjection 35 °C (ΔT 42 °C), e-price €150/MWh, 6,000/2,000 load-hours
 - Out of scope (declared): heat-distribution network, permitting, 3-D/FEM thermal modelling
 
@@ -165,7 +206,7 @@ not a gap we missed.
 
 ---
 
-## Slide 12 — Ask / next steps
+## Slide 13 — Ask / next steps
 
 - **Pilot first:** one well → in-situ injectivity/production test → confirm Darcy → complete doublet → second doublet → FID
 - Data gaps to close before FID: 3-D seismic, in-situ injectivity test, transient breakthrough sim

@@ -1,6 +1,19 @@
 # SPE Africa Geothermal Datathon 2026 — pinned dependencies
-# Tested against Python 3.12.0 on Windows 11.
-# Install: python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
+# Tested on Python 3.12 (Windows 11) and Python 3.9 (macOS, Apple Silicon).
+#
+# Install (any platform):
+#   python -m venv .venv
+#   source .venv/bin/activate          # macOS / Linux
+#   .venv\Scripts\activate             # Windows (PowerShell / cmd)
+#   pip install -r requirements.txt
+#
+# LightGBM note: the wheels below install on all three platforms, but LightGBM's
+# compiled backend loads the OpenMP runtime at *run time*. On a stock macOS/Linux
+# box that runtime may be missing — install it once if you run the ML stage:
+#   macOS:         brew install libomp
+#   Debian/Ubuntu: sudo apt-get install libgomp1
+# Everything except the bonus ML log-prediction (src/ml_logs.py) runs without it,
+# and the test suite skips the ML tests gracefully when it is absent.
 
 # --- well-log I/O ---
 lasio==0.31
@@ -17,7 +30,9 @@ pyproj==3.6.1
 
 # --- ML ---
 scikit-learn==1.4.2
-lightgbm==4.3.0
+lightgbm==4.6.0      # 4.6 ships universal wheels (Win/macOS-arm64/Linux); 4.3 had
+                     # no arm64 wheel and tried (and failed) to build from source.
+                     # Needs the OpenMP runtime at run time — see header note.
 
 # --- plotting ---
 matplotlib==3.8.4

@@ -24,19 +24,37 @@ from src.paths import FIGURES
 from src.thermogis import load_thermogis
 
 
+def _independent_scheme(single, n_doublets, rng):
+    """Sum n INDEPENDENT single-doublet realisations (matches montecarlo.summarise).
+
+    Bootstrapping independent resamples — not rescaling one draw by n — is the
+    whole point: two doublets sample the resource independently, so the scheme
+    distribution is less skewed and its median rises faster than n x the single P50.
+    """
+    if n_doublets <= 1:
+        return single
+    scheme = np.zeros(single.size)
+    for _ in range(n_doublets):
+        scheme = scheme + rng.choice(single, size=single.size, replace=True)
+    return scheme
+
+
 def fig_mc_distribution(mc, out: Path) -> None:
     blt = mc[mc["well"] == "BLT-01"]["mwth"].to_numpy()
+    rng = np.random.default_rng(20260607)
     fig, ax = plt.subplots(figsize=(7, 4.2))
     for nd, c in [(1, "#4c72b0"), (2, "#dd8452"), (3, "#55a868")]:
-        scheme = blt * nd
-        ax.hist(np.clip(scheme, 0, 40), bins=60, alpha=0.55, color=c,
+        scheme = _independent_scheme(blt, nd, rng)
+        p_ge = (scheme >= DEMAND_HEATING_MWTH).mean()
+        ax.hist(np.clip(scheme, 0, 60), bins=60, alpha=0.55, color=c,
                 label=f"{nd} doublet{'s' if nd > 1 else ''} "
-                      f"(P50 {np.median(scheme):.1f} MWth)")
+                      f"(P50 {np.median(scheme):.1f} MWth, "
+                      f"P≥10={p_ge:.0%})")
     ax.axvline(DEMAND_HEATING_MWTH, color="k", ls="--", lw=1.6,
                label=f"heating demand {DEMAND_HEATING_MWTH:.0f} MWth")
     ax.set_xlabel("Thermal power (MWth)")
     ax.set_ylabel("Monte-Carlo realisations (10k draws)")
-    ax.set_title("BLT-01 doublet deliverability — Monte-Carlo MWth")
+    ax.set_title("BLT-01 doublet deliverability — Monte-Carlo MWth (independent doublets)")
     ax.legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(out, dpi=130)

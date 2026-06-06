@@ -9,7 +9,12 @@ from src.deliverability import (
     deliverability_table,
     thermal_power_mw,
 )
-from src.montecarlo import fit_lognormal, simulate_all, summarise
+from src.montecarlo import (
+    ates_cooling_adequacy,
+    fit_lognormal,
+    simulate_all,
+    summarise,
+)
 from src.thermogis import load_thermogis, thermogis_property
 
 
@@ -51,16 +56,58 @@ def test_fit_lognormal_recovers_median():
     assert sigma > 0
 
 
+def test_split_lognormal_reproduces_thermogis_band_exactly():
+    """Unlike the single-sigma fit, the split fit must hit BOTH published tails:
+    the sampled P90 and P10 reproduce ThermoGIS's flow band, not just the average
+    spread. BLT-01 flow 17/105/469: the old fit overshot P10 to ~551."""
+    from src.montecarlo import _sample_split_lognormal, fit_split_lognormal
+    mu, s_lo, s_hi = fit_split_lognormal(17.0, 105.0, 469.0)
+    rng = np.random.default_rng(0)
+    draws = _sample_split_lognormal(rng, mu, s_lo, s_hi, 200_000)
+    assert abs(np.percentile(draws, 50) - 105.0) / 105.0 < 0.02
+    assert abs(np.percentile(draws, 10) - 17.0) / 17.0 < 0.05   # P90 low
+    assert abs(np.percentile(draws, 90) - 469.0) / 469.0 < 0.05  # P10 high (was ~551)
+
+
+def test_flow_cap_bounds_the_optimistic_tail_not_the_median():
+    """The pump/sand-control ceiling de-rates only the upper tail: no realisation
+    exceeds the cap, the capped optimistic P10 is well below the uncapped one, and
+    the P50 headline is untouched."""
+    capped = simulate_all(n=20_000, anchor="flow")               # default cap 300
+    uncapped = simulate_all(n=20_000, anchor="flow", q_max_m3h=None)
+    blt_c = capped[capped["well"] == "BLT-01"]
+    blt_u = uncapped[uncapped["well"] == "BLT-01"]
+    assert blt_c["flow_m3h"].max() <= 300.0 + 1e-9
+    s_c = summarise(blt_c, 10.0, n_doublets=1).iloc[0]
+    s_u = summarise(blt_u, 10.0, n_doublets=1).iloc[0]
+    assert s_c["mwth_p10"] < s_u["mwth_p10"] - 3.0          # tail pulled in materially
+    assert abs(s_c["mwth_p50"] - s_u["mwth_p50"]) < 0.1     # median untouched
+
+
 def test_mc_blt_p50_is_about_5MWth_single_doublet():
     """Headline finding: a single BLT-01 doublet is ~5 MWth at P50 (below the
-    10 MWth heating demand); two doublets reach ~10 MWth."""
-    mc = simulate_all(n=5_000, anchor="flow")
+    10 MWth heating demand) with only a ~31% chance of clearing it alone."""
+    mc = simulate_all(n=10_000, anchor="flow")
+    blt = mc[mc["well"] == "BLT-01"]
+    s1 = summarise(blt, 10.0, n_doublets=1).iloc[0]
+    assert 4.0 < s1["mwth_p50"] < 6.5
+    assert 0.25 < s1["p_ge_10MWth"] < 0.40
+
+
+def test_mc_two_doublets_are_independent_not_rescaled():
+    """Two doublets are modelled as a sum of INDEPENDENT realisations, not one
+    draw rescaled by 2. The independent scheme reaches ~14 MWth P50 with a ~64%
+    chance of clearing 10 MWth; perfect-correlation rescaling would force exactly
+    2x the single P50 (~10.1) and P(>=10)~=P(single>=5)~=0.50. This guards against
+    the correlation artifact silently returning."""
+    mc = simulate_all(n=10_000, anchor="flow")
     blt = mc[mc["well"] == "BLT-01"]
     s1 = summarise(blt, 10.0, n_doublets=1).iloc[0]
     s2 = summarise(blt, 10.0, n_doublets=2).iloc[0]
-    assert 4.0 < s1["mwth_p50"] < 6.5
-    assert s1["p_ge_10MWth"] < 0.5
-    assert s2["mwth_p50"] >= 9.5
+    # Summing independents reduces skew: the scheme P50 rises FASTER than 2x.
+    assert s2["mwth_p50"] > 2.0 * s1["mwth_p50"] + 1.0   # i.e. clearly > 10.1
+    assert 12.5 < s2["mwth_p50"] < 16.0
+    assert s2["p_ge_10MWth"] > 0.55
 
 
 def test_mc_uneconomic_wells_are_zero():
@@ -68,3 +115,14 @@ def test_mc_uneconomic_wells_are_zero():
     mc = simulate_all(n=2_000, anchor="flow")
     for w in ("EVD-01", "PKP-01"):
         assert mc[mc["well"] == w]["mwth"].max() == 0.0
+
+
+def test_ates_cooling_clears_demand_at_six_pairs_not_four():
+    """Cooling adequacy is probabilised over the 0.5-2.0 MWth/pair ATES range.
+    Four pairs (the old midpoint-sized design) fail the 5 MWth demand most of the
+    time at conservative throughput; six pairs clear it with high confidence."""
+    four = ates_cooling_adequacy(n_pairs=4)
+    six = ates_cooling_adequacy(n_pairs=6)
+    assert four["p_meets_demand"] < 0.5            # under-sized at the low end
+    assert six["p_meets_demand"] > 0.95            # robust
+    assert six["supply_p90"] >= 5.0                # even the conservative P90 clears

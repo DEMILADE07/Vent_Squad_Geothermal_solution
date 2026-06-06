@@ -99,7 +99,7 @@ def build(path=LCOE_HYBRID) -> str:
     k: CoolingCase = CoolingCase(cooling_mwth=cfg.demand_cooling_mwth, ates_pairs=a["ates_pairs"])
     fin = h.fin
     inputs = [
-        ("Resource", "Heat delivered (MC P50)", round(cfg.heat_mwth_p50, 2), "MWth", "src/montecarlo.py, 2-doublet scheme"),
+        ("Resource", "Heat delivered (demand-capped)", round(cfg.heat_delivered_mwth, 2), "MWth", "10 MWth demand; resource P50 14.1 MWth"),
         ("Resource", "Production temperature", cfg.t_prod_c, "C", "ThermoGIS P50, BLT-01"),
         ("Resource", "Reinjection temperature", cfg.t_reinject_c, "C", "ThermoGIS standard"),
         ("Heat", "Number of wells", cfg.n_wells, "-", "2 doublets x 2 wells"),
@@ -114,8 +114,8 @@ def build(path=LCOE_HYBRID) -> str:
         ("Cooling", "Cooling load hours", k.cooling_loadhours, "h/yr", "summer-peaky, FLEQ"),
         ("Cooling", "ATES well pairs", k.ates_pairs, "-", "warm/cold doublets"),
         ("Cooling", "ATES capex / pair", k.ates_capex_mln_per_pair, "mln EUR", "NL range 0.5-0.8"),
-        ("Cooling", "ATES throughput / pair", k.ates_throughput_mwth_per_pair, "MWth", "0.5-2 MWth typical"),
-        ("Cooling", "System cooling COP", k.system_cop_cooling, "-", "ATES + HP trim, blended"),
+        ("Cooling", "ATES throughput / pair", k.ates_throughput_mwth_per_pair, "MWth", "conservative central of 0.5-2.0 (Fleuchaus 2018)"),
+        ("Cooling", "System cooling COP", k.system_cop_cooling, "-", "ATES circulation + HP trim, ~70/30 blend"),
         ("Cooling", "Chiller/HP capex", k.chiller_capex_keur_mwth, "kEUR/MWth", "trim heat pump"),
         ("Finance", "Loan rate", fin.loan_rate, "-", "TNO"),
         ("Finance", "Required equity return", fin.equity_return, "-", "TNO; = discount rate"),

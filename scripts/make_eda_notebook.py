@@ -13,13 +13,15 @@ md = lambda s: cells.append(nbf.v4.new_markdown_cell(s))
 code = lambda s: cells.append(nbf.v4.new_code_cell(s))
 
 md(r"""# 01 - Exploratory Data Analysis & Data Foundation
-**SPE Africa Geothermal Datathon 2026 - Challenge 1**
+**SPE Africa Geothermal Datathon 2026 - Challenge 1 - Team Vent Squad**
 
-Day-1 data foundation for the four Utrecht-region wells (BLT-01, EVD-01,
-JUT-01, PKP-01) targeting the **Rotliegend / Slochteren Formation** sandstone.
-Reproducible top-to-bottom: all logic lives in `src/` and is unit-tested.
+This notebook establishes the clean, unit-consistent, depth-referenced data
+foundation that every later result is built on, for the four Utrecht-region wells
+(BLT-01, EVD-01, JUT-01, PKP-01) targeting the **Rotliegend / Slochteren Formation**
+sandstone. It runs top-to-bottom from a fresh clone; all logic lives in `src/` and is
+unit-tested, so each figure and table below is reproducible rather than asserted.
 
-**What this establishes**
+**What this notebook establishes**
 1. Curve inventory and coverage per well (BLT-01 is the anchor).
 2. Unit harmonisation (JUT-01 in feet) and null/spike cleaning.
 3. Minimum-curvature **MD->TVD**, validated against the survey TVD column.
@@ -178,17 +180,26 @@ summary["thermoGIS_top_m"] = [META[w].top_rotliegend_m for w in WELLS]
 summary["thermoGIS_phi"]   = [META[w].porosity_pct_p50/100 for w in WELLS]
 summary""")
 
-md(r"""### Day-1 conclusions
+md(r"""### What the data foundation tells us
 
-* **BLT-01** - gross ~122 m, **NTG 0.93**, phi_net ~15% (vs ThermoGIS 17%): the
-  development anchor.
+* **BLT-01 is the development anchor** - gross ~122 m of Slochteren, **net-to-gross
+  0.93**, net porosity ~15% (ThermoGIS 17%): the thickest, cleanest, most porous of
+  the four, and the well every downstream calculation is anchored on.
 * **EVD-01** - NTG ~0.55, phi ~11%: moderate.
-* **PKP-01** - **NTG 0.10**, tight, consistent with ThermoGIS k_P50 = 1 mD.
-* **JUT-01** - structurally complex (reverse fault, fault-repeated Slochteren)
-  with a corrupted target interval; flagged for manual review.
+* **PKP-01** - **NTG 0.10**, very tight (consistent with its low ThermoGIS
+  permeability of ~1 mD).
+* **JUT-01** - structurally complex (a reverse fault repeats the Slochteren section)
+  with a deliberately corrupted target interval; we isolate and flag it rather than
+  let it contaminate the aggregate.
 
-**Gate - "could we submit a defensible BLT-01 Rotliegend table tonight?" -> Yes.**
-Next: reservoir deliverability (MWth) and the doublet design (Challenge 2).""")
+A note on net-to-gross we make openly: our log-based NTG matches ThermoGIS at the
+anchor well (0.93 vs 0.98) but is deliberately *stricter* at the three weaker wells,
+where ThermoGIS publishes a regional play-average of 0.95-0.99. We trust the
+well-specific logs there, which makes our characterisation the more conservative; and
+because the resource estimate (notebook 03) is anchored on ThermoGIS's own published
+flow rate, this disagreement sharpens the picture without changing the headline
+deliverability. With a trustworthy data foundation in hand, notebook 03 turns these
+rock properties into a probabilistic resource estimate and the doublet design.""")
 
 nb["cells"] = cells
 nb.metadata["kernelspec"] = {"display_name": "Python 3", "language": "python", "name": "python3"}

@@ -10,6 +10,14 @@ import warnings
 import numpy as np
 import pytest
 
+# The ML stage needs LightGBM, whose backend needs the OpenMP runtime (libomp).
+# On a machine without it (stock macOS/Linux), skip this module cleanly rather
+# than erroring the whole suite — every other test still runs and goes green.
+try:
+    import lightgbm  # noqa: F401  (import triggers the libomp dlopen)
+except (ImportError, OSError) as exc:  # OSError = libomp not loadable
+    pytest.skip(f"LightGBM/libomp unavailable: {exc}", allow_module_level=True)
+
 from src import ml_logs
 from src.ml_logs import (
     DONOR_MIN_COVERAGE,

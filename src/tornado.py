@@ -18,7 +18,7 @@ from src.surface import SchemeConfig
 
 
 def _blended_lcoe(cfg: SchemeConfig, cool: CoolingCase) -> float:
-    h = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_mwth_p50)
+    h = heat_economics(cfg.heat_case(), heat_mwth=cfg.heat_delivered_mwth)
     k = cooling_economics(cool)
     e = h["npv_energy_gj"] + k["npv_energy_gj"]
     return (h["lcoe_eur_gj"] * h["npv_energy_gj"]
@@ -55,13 +55,13 @@ class _CfgWithHeat:
 def tornado_data(cfg: SchemeConfig | None = None,
                  cool: CoolingCase | None = None) -> pd.DataFrame:
     cfg = cfg or SchemeConfig()
-    cool = cool or CoolingCase(cooling_mwth=cfg.demand_cooling_mwth, ates_pairs=4)
+    cool = cool or CoolingCase(cooling_mwth=cfg.demand_cooling_mwth, ates_pairs=6)
     base = _blended_lcoe(cfg, cool)
 
     drivers = {
-        "Resource heat (MWth)": (
-            _with(cfg, cool, cfg_kw={"heat_mwth_p50": 13.0}),   # high MWth -> low LCOE
-            _with(cfg, cool, cfg_kw={"heat_mwth_p50": 8.0}),
+        "Heat delivered (MWth)": (
+            _with(cfg, cool, cfg_kw={"heat_delivered_mwth": 13.0}),  # more sold -> low LCOE
+            _with(cfg, cool, cfg_kw={"heat_delivered_mwth": 8.0}),
         ),
         "Equity return (disc.)": (
             _with(cfg, cool, fin=Financing(equity_return=0.10)),

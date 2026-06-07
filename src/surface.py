@@ -18,9 +18,9 @@ Dutch benchmark, spending heat to make cold is the wrong trade, and the cost
 comparison shows it rather than asserting it.
 
 Heat sold is the 10 MWth district demand. The 2-doublet *resource* P50 is
-14.1 MWth (src/montecarlo.py, independent doublets), so the scheme is resource-
-adequate with headroom and the LCOE is sized on heat actually delivered rather
-than on the resource surplus.
+13.2 MWth (src/montecarlo.py, independent doublets, pump-capped), so the scheme is
+resource-adequate with headroom and the LCOE is sized on heat actually delivered
+rather than on the resource surplus.
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ class SchemeConfig:
     t_prod_c: float = 77.0              # BLT-01 ThermoGIS P50 temperature
     t_reinject_c: float = 35.0          # ThermoGIS standard reinjection
     # Heat *sold* = the 10 MWth district heating demand. The 2-doublet *resource*
-    # P50 is 14.1 MWth (src/montecarlo.py, independent-doublet scheme) — ~40 %
+    # P50 is 13.2 MWth (src/montecarlo.py, independent-doublet scheme) — ~30 %
     # headroom — so deliveries are demand-capped, not resource-capped; the LCOE is
     # sized on heat actually sold, which avoids crediting the resource surplus.
     heat_delivered_mwth: float = 10.0

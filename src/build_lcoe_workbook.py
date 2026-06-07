@@ -99,7 +99,7 @@ def build(path=LCOE_HYBRID) -> str:
     k: CoolingCase = CoolingCase(cooling_mwth=cfg.demand_cooling_mwth, ates_pairs=a["ates_pairs"])
     fin = h.fin
     inputs = [
-        ("Resource", "Heat delivered (demand-capped)", round(cfg.heat_delivered_mwth, 2), "MWth", "10 MWth demand; resource P50 14.1 MWth"),
+        ("Resource", "Heat delivered (demand-capped)", round(cfg.heat_delivered_mwth, 2), "MWth", "10 MWth demand; resource P50 13.2 MWth"),
         ("Resource", "Production temperature", cfg.t_prod_c, "C", "ThermoGIS P50, BLT-01"),
         ("Resource", "Reinjection temperature", cfg.t_reinject_c, "C", "ThermoGIS standard"),
         ("Heat", "Number of wells", cfg.n_wells, "-", "2 doublets x 2 wells"),

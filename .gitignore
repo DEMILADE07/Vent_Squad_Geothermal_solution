@@ -62,3 +62,8 @@ SPE_Africa_Geothermal_Datathon_Submission_Guidelines.pdf
 CONTEXT.md
 PLAN.md
 CHECKPOINT.md
+
+# --- notebook generators: dev tooling, kept local, not published ---
+scripts/make_eda_notebook.py
+scripts/make_ml_notebook.py
+scripts/make_resource_notebook.py

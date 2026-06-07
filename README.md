@@ -99,7 +99,7 @@ jupyter lab notebooks/              # explore the analysis notebooks
 ├── notebooks/                   # 01_eda · 03_resource_montecarlo · 04_lcoe · 05_ml_logs
 ├── src/                         # library modules + pipeline.py + build_all.py
 │                                #   (incl. dispatch, lcoe_montecarlo, reservoir_thermal, value_case)
-├── scripts/                     # figure + notebook generators
+├── scripts/                     # figure generator (make_deliverability_figures)
 ├── tests/                       # pytest (units, MD→TVD, deliverability, LCOE, dispatch, value case, ML)
 ├── figures/                     # rendered figures the report and deck embed (tracked)
 └── deliverables/                # technical report + slide deck
